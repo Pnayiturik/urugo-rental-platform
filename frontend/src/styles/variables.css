@@ -1,0 +1,111 @@
+:root {
+  /* ========== PRIMARY COLORS ========== */
+  --primary-purple: #7B2CBF;
+  --primary-purple-dark: #5A189A;
+  --primary-purple-light: #9D4EDD;
+  --primary-purple-lighter: #C77DFF;
+  
+  /* ========== SECONDARY COLORS ========== */
+  --accent-yellow: #FFB703;
+  --accent-yellow-dark: #FB8500;
+  --accent-pink: #E0479E;
+  --accent-pink-light: #F72585;
+  
+  /* ========== NEUTRAL COLORS ========== */
+  --dark-bg: #1A2332;
+  --dark-bg-light: #2D3748;
+  --dark-bg-lighter: #3D4A5C;
+  
+  --gray-50: #F9FAFB;
+  --gray-100: #F7FAFC;
+  --gray-200: #EDF2F7;
+  --gray-300: #E2E8F0;
+  --gray-400: #CBD5E0;
+  --gray-500: #A0AEC0;
+  --gray-600: #718096;
+  --gray-700: #4A5568;
+  --gray-800: #2D3748;
+  --gray-900: #1A202C;
+  
+  --white: #FFFFFF;
+  --black: #000000;
+
+  --success-green: #48BB78;
+  --success-green-light: #68D391;
+  --success-green-dark: #38A169;
+  
+  --warning-yellow: #F6E05E;
+  --warning-yellow-light: #FAF089;
+  --warning-yellow-dark: #D69E2E;
+  
+  --error-red: #F56565;
+  --error-red-light: #FC8181;
+  --error-red-dark: #E53E3E;
+  
+  --info-blue: #4299E1;
+  --info-blue-light: #63B3ED;
+  --info-blue-dark: #3182CE;
+  
+
+  --gradient-primary: linear-gradient(135deg, #7B2CBF 0%, #5A189A 100%);
+  --gradient-secondary: linear-gradient(135deg, #FFB703 0%, #E0479E 100%);
+  --gradient-purple-pink: linear-gradient(135deg, #7B2CBF 0%, #E0479E 100%);
+  --gradient-dark: linear-gradient(135deg, #1A2332 0%, #2D3748 100%);
+  
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-purple: 0 10px 30px rgba(123, 44, 191, 0.3);
+  
+  --radius-sm: 0.25rem;    /* 4px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-2xl: 1.5rem;    /* 24px */
+  --radius-full: 9999px;   /* Fully rounded */
+  
+  --space-xs: 0.25rem;     /* 4px */
+  --space-sm: 0.5rem;      /* 8px */
+  --space-md: 1rem;        /* 16px */
+  --space-lg: 1.5rem;      /* 24px */
+  --space-xl: 2rem;        /* 32px */
+  --space-2xl: 3rem;       /* 48px */
+  --space-3xl: 4rem;       /* 64px */
+  
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+  --font-size-5xl: 3rem;      /* 48px */
+  
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+  
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 300ms ease-in-out;
+  --transition-slow: 500ms ease-in-out;
+
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+}

@@ -2,6 +2,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import LandlordLayout from './layouts/LandlordLayout';
+import LandlordHome from './pages/landlord/Home';
+import Properties from './pages/landlord/Properties';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useAuth();
@@ -24,44 +27,6 @@ const RedirectIfAuth = ({ children }) => {
   return children;
 };
 
-const LandlordTemp = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--gray-100)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 'var(--space-lg)'
-    }}>
-      <h1 style={{ color: 'var(--primary-purple)' }}>🏢 Landlord Dashboard</h1>
-      <p style={{ color: 'var(--gray-600)' }}>
-        Welcome, {user.firstName} {user.lastName}
-      </p>
-      <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
-        Email: {user.email}
-      </p>
-      <button
-        onClick={logout}
-        style={{
-          background: 'var(--error-red)',
-          color: 'white',
-          padding: 'var(--space-sm) var(--space-xl)',
-          borderRadius: 'var(--radius-md)',
-          fontSize: 'var(--font-size-base)',
-          fontWeight: 'var(--font-weight-semibold)',
-          border: 'none',
-          cursor: 'pointer'
-        }}
-      >
-        Logout
-      </button>
-    </div>
-  );
-};
-
 const TenantTemp = () => {
   const { user, logout } = useAuth();
   return (
@@ -77,9 +42,6 @@ const TenantTemp = () => {
       <h1 style={{ color: 'var(--primary-purple)' }}>🏠 Tenant Dashboard</h1>
       <p style={{ color: 'var(--gray-600)' }}>
         Welcome, {user.firstName} {user.lastName}
-      </p>
-      <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
-        Email: {user.email}
       </p>
       <button
         onClick={logout}
@@ -119,12 +81,17 @@ function App() {
             </RedirectIfAuth>
           } />
 
+          {/* Landlord Routes */}
           <Route path="/landlord" element={
             <ProtectedRoute role="landlord">
-              <LandlordTemp />
+              <LandlordLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route index element={<LandlordHome />} />
+            <Route path="properties" element={<Properties />} />
+          </Route>
 
+          {/* Tenant Routes */}
           <Route path="/tenant" element={
             <ProtectedRoute role="tenant">
               <TenantTemp />

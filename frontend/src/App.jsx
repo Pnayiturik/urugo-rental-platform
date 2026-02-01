@@ -1,22 +1,138 @@
-import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
+
+const ProtectedRoute = ({ children, role }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <Navigate to="/login" />;
+  if (role && user.role !== role) return <Navigate to="/" />;
+
+  return children;
+};
+
+const RedirectIfAuth = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>Loading...</div>;
+  if (user) {
+    return <Navigate to={user.role === 'landlord' ? '/landlord' : '/tenant'} />;
+  }
+
+  return children;
+};
+
+const LandlordTemp = () => {
+  const { user, logout } = useAuth();
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'var(--gray-100)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 'var(--space-lg)'
+    }}>
+      <h1 style={{ color: 'var(--primary-purple)' }}>🏢 Landlord Dashboard</h1>
+      <p style={{ color: 'var(--gray-600)' }}>
+        Welcome, {user.firstName} {user.lastName}
+      </p>
+      <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
+        Email: {user.email}
+      </p>
+      <button
+        onClick={logout}
+        style={{
+          background: 'var(--error-red)',
+          color: 'white',
+          padding: 'var(--space-sm) var(--space-xl)',
+          borderRadius: 'var(--radius-md)',
+          fontSize: 'var(--font-size-base)',
+          fontWeight: 'var(--font-weight-semibold)',
+          border: 'none',
+          cursor: 'pointer'
+        }}
+      >
+        Logout
+      </button>
+    </div>
+  );
+};
+
+const TenantTemp = () => {
+  const { user, logout } = useAuth();
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: 'var(--gray-100)',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 'var(--space-lg)'
+    }}>
+      <h1 style={{ color: 'var(--primary-purple)' }}>🏠 Tenant Dashboard</h1>
+      <p style={{ color: 'var(--gray-600)' }}>
+        Welcome, {user.firstName} {user.lastName}
+      </p>
+      <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-sm)' }}>
+        Email: {user.email}
+      </p>
+      <button
+        onClick={logout}
+        style={{
+          background: 'var(--error-red)',
+          color: 'white',
+          padding: 'var(--space-sm) var(--space-xl)',
+          borderRadius: 'var(--radius-md)',
+          fontSize: 'var(--font-size-base)',
+          fontWeight: 'var(--font-weight-semibold)',
+          border: 'none',
+          cursor: 'pointer'
+        }}
+      >
+        Logout
+      </button>
+    </div>
+  );
+};
 
 function App() {
   return (
-    <div style={{ 
-      padding: '2rem', 
-      textAlign: 'center',
-      background: 'var(--gradient-primary)',
-      minHeight: '100vh',
-      color: 'white'
-    }}>
-      <h1>🏠 Urugo Rental Management Platform</h1>
-      <p style={{ marginTop: '1rem', fontSize: '1.2rem' }}>
-        Setup Complete! ✅
-      </p>
-      <p style={{ marginTop: '0.5rem' }}>
-        Day 1 - Foundation Ready 🚀
-      </p>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" />} />
+
+          <Route path="/login" element={
+            <RedirectIfAuth>
+              <Login />
+            </RedirectIfAuth>
+          } />
+
+          <Route path="/register" element={
+            <RedirectIfAuth>
+              <Register />
+            </RedirectIfAuth>
+          } />
+
+          <Route path="/landlord" element={
+            <ProtectedRoute role="landlord">
+              <LandlordTemp />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/tenant" element={
+            <ProtectedRoute role="tenant">
+              <TenantTemp />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

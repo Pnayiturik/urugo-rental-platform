@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
+const authRoutes = require('./routes/authRoutes');
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -28,5 +29,7 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+app.use('/api/auth', authRoutes);
 
 module.exports = app;

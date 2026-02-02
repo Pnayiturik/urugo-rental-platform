@@ -7,6 +7,7 @@ dotenv.config();
 const app = express();
 const authRoutes = require('./routes/authRoutes');
 const propertyRoutes = require('./routes/propertyRoutes');
+const tenantRoutes = require('./routes/tenantRoutes');
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -33,5 +34,6 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
+app.use('/api/tenants', tenantRoutes);
 
 module.exports = app;

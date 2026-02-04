@@ -4,14 +4,14 @@ import { useAuth } from '../../context/AuthContext';
 
 function Register() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    password: '',
-    phone: '',
-    dateOfBirth: '',
-    role: ''
-  });
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  phone: '',
+  dateOfBirth: '',
+  role: 'landlord'
+});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const { handleRegister } = useAuth();
@@ -115,44 +115,27 @@ function Register() {
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
             {/* Role Selection */}
-            <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
-              <div
-                onClick={() => setFormData({ ...formData, role: 'landlord' })}
-                style={{
-                  flex: 1,
-                  padding: 'var(--space-md)',
-                  borderRadius: 'var(--radius-lg)',
-                  border: formData.role === 'landlord' ? '2px solid var(--primary-purple)' : '2px solid var(--gray-300)',
-                  background: formData.role === 'landlord' ? '#F3E8FF' : 'white',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'var(--transition-fast)'
-                }}
-              >
-                <p style={{ fontSize: 'var(--font-size-xl)' }}>🏢</p>
-                <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: formData.role === 'landlord' ? 'var(--primary-purple)' : 'var(--gray-700)' }}>
-                  Landlord
-                </p>
-              </div>
-              <div
-                onClick={() => setFormData({ ...formData, role: 'tenant' })}
-                style={{
-                  flex: 1,
-                  padding: 'var(--space-md)',
-                  borderRadius: 'var(--radius-lg)',
-                  border: formData.role === 'tenant' ? '2px solid var(--primary-purple)' : '2px solid var(--gray-300)',
-                  background: formData.role === 'tenant' ? '#F3E8FF' : 'white',
-                  cursor: 'pointer',
-                  textAlign: 'center',
-                  transition: 'var(--transition-fast)'
-                }}
-              >
-                <p style={{ fontSize: 'var(--font-size-xl)' }}>🏠</p>
-                <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: formData.role === 'tenant' ? 'var(--primary-purple)' : 'var(--gray-700)' }}>
-                  Tenant
-                </p>
-              </div>
-            </div>
+            {/* Role Selection */}
+<div style={{ marginBottom: 'var(--space-md)' }}>
+  <div
+    style={{
+      padding: 'var(--space-md)',
+      borderRadius: 'var(--radius-lg)',
+      border: '2px solid var(--primary-purple)',
+      background: '#F3E8FF',
+      textAlign: 'center'
+    }}
+  >
+    <p style={{ fontSize: 'var(--font-size-xl)' }}>🏢</p>
+    <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--primary-purple)' }}>
+      Landlord Account
+    </p>
+    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)', marginTop: 'var(--space-xs)' }}>
+      Tenants are invited by landlords
+    </p>
+  </div>
+</div>
+<input type="hidden" name="role" value="landlord" />
 
             {/* First & Last Name */}
             <div style={{ display: 'flex', gap: 'var(--space-md)' }}>

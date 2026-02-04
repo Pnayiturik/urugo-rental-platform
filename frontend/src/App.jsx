@@ -3,8 +3,13 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import LandlordLayout from './layouts/LandlordLayout';
+import TenantLayout from './layouts/TenantLayout';
 import LandlordHome from './pages/landlord/Home';
 import Properties from './pages/landlord/Properties';
+import PropertyDetails from './pages/landlord/PropertyDetails';
+import Renters from './pages/landlord/Renters';
+import Transactions from './pages/landlord/Transactions';
+import TenantHome from './pages/tenant/Home';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useAuth();
@@ -25,41 +30,6 @@ const RedirectIfAuth = ({ children }) => {
   }
 
   return children;
-};
-
-const TenantTemp = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'var(--gray-100)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 'var(--space-lg)'
-    }}>
-      <h1 style={{ color: 'var(--primary-purple)' }}>🏠 Tenant Dashboard</h1>
-      <p style={{ color: 'var(--gray-600)' }}>
-        Welcome, {user.firstName} {user.lastName}
-      </p>
-      <button
-        onClick={logout}
-        style={{
-          background: 'var(--error-red)',
-          color: 'white',
-          padding: 'var(--space-sm) var(--space-xl)',
-          borderRadius: 'var(--radius-md)',
-          fontSize: 'var(--font-size-base)',
-          fontWeight: 'var(--font-weight-semibold)',
-          border: 'none',
-          cursor: 'pointer'
-        }}
-      >
-        Logout
-      </button>
-    </div>
-  );
 };
 
 function App() {
@@ -89,14 +59,19 @@ function App() {
           }>
             <Route index element={<LandlordHome />} />
             <Route path="properties" element={<Properties />} />
+            <Route path="properties/:id" element={<PropertyDetails />} />
+            <Route path="renters" element={<Renters />} />
+            <Route path="transactions" element={<Transactions />} />
           </Route>
 
           {/* Tenant Routes */}
           <Route path="/tenant" element={
             <ProtectedRoute role="tenant">
-              <TenantTemp />
+              <TenantLayout />
             </ProtectedRoute>
-          } />
+          }>
+            <Route index element={<TenantHome />} />
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>

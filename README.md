@@ -598,9 +598,5 @@ Access: IP whitelist + strong authentication
 
 **Project Status**: In Development  
 
-Project Description...
-System Architecture...
-ERD diagrams...
-
 **Last Updated**: February 2026
 >>>>>>> b835adc (diagrams folder created with ERD png, System Architecture design, Class Diagram)

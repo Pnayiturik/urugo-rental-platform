@@ -311,7 +311,7 @@ The application features a **modern, clean interface** with a blue gradient them
 ### Current Status
 The application is currently running in **development mode** on local machines. The deployment to production will follow a phased approach to ensure stability and proper configuration.
 
-### Phase 1: Pre-Deployment Preparation (Week 1)
+### Phase 1: Pre-Deployment Preparation (Week 3-4 feb)
 
 **Tasks:**
 - [ ] Complete all core features (payments, lease agreements)
@@ -351,7 +351,7 @@ Access: IP whitelist + strong authentication
 
 ---
 
-### Phase 3: Backend Deployment (Week 2)
+### Phase 3: Backend Deployment (Week 4 feb-1 march)
 
 **Platform: Render.com**
 
@@ -419,7 +419,7 @@ Access: IP whitelist + strong authentication
 
 ---
 
-### Phase 4: Frontend Deployment (Week 2)
+### Phase 4: Frontend Deployment (Week 4 feb-1 march)
 
 **Platform: Vercel**
 
@@ -469,7 +469,7 @@ Access: IP whitelist + strong authentication
 
 ---
 
-### Phase 5: Testing & Verification (Week 3)
+### Phase 5: Testing & Verification (Week 1-2 march)
 
 **Testing Checklist:**
 - [ ] User registration works

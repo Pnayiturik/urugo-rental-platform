@@ -75,13 +75,33 @@ const processPayment = async (req, res) => {
     });
 
     if (paymentResult.success) {
-      payment.status = 'completed';
-      payment.paymentMethod = paymentMethod;
-      payment.phoneNumber = phoneNumber;
-      payment.transactionId = paymentResult.transactionId;
-      payment.paidDate = new Date();
-      await payment.save();
+  payment.status = 'completed';
+  payment.paymentMethod = paymentMethod;
+  payment.phoneNumber = phoneNumber;
+  payment.transactionId = paymentResult.transactionId;
+  payment.paidDate = new Date();
+  await payment.save();
+
+  // Send notification to landlord
+  const { sendLandlordNotification } = require('../services/emailService');
+  const landlord = await require('../models/User').findById(payment.landlordId);
+  const tenantUser = await require('../models/User').findById(tenant.userId);
+  
+  if (landlord && landlord.email) {
+    try {
+      await sendLandlordNotification({
+        landlordEmail: landlord.email,
+        landlordName: `${landlord.firstName} ${landlord.lastName}`,
+        tenantName: `${tenantUser.firstName} ${tenantUser.lastName}`,
+        amount: payment.amount,
+        propertyName: payment.propertyId?.name || 'Property',
+        type: 'payment_received'
+      });
+    } catch (emailError) {
+      console.error('Failed to send landlord notification:', emailError);
     }
+  }
+}
 
     const populatedPayment = await Payment.findById(payment._id)
       .populate('propertyId', 'name address');

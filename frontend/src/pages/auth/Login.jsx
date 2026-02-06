@@ -50,7 +50,7 @@ function Login() {
         {/* Left Side - Branding */}
         <div style={{
           flex: 1,
-          background: 'var(--gradient-purple-pink)',
+          background: 'var(--gradient-purple-blue)',
           padding: 'var(--space-3xl)',
           display: 'flex',
           flexDirection: 'column',

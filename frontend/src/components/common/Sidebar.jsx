@@ -4,17 +4,17 @@ import { useAuth } from '../../context/AuthContext';
 
 const landlordLinks = [
   { name: 'Home', icon: '🏠', path: '/landlord' },
-  { name: 'Properties', icon: '🏢', path: '/landlord/properties' },
-  { name: 'Renters', icon: '👥', path: '/landlord/renters' },
-  { name: 'Transactions', icon: '💰', path: '/landlord/transactions' },
-  { name: 'Documents', icon: '📄', path: '/landlord/documents' },
+  { name: 'Properties', icon: '', path: '/landlord/properties' },
+  { name: 'Renters', icon: '', path: '/landlord/renters' },
+  { name: 'Transactions', icon: '', path: '/landlord/transactions' },
+  { name: 'Documents', icon: '', path: '/landlord/documents' },
 ];
 
 const tenantLinks = [
   { name: 'Home', icon: '🏠', path: '/tenant' },
-  { name: 'Transactions', icon: '💰', path: '/tenant/transactions' },
-  { name: 'Wallet', icon: '👛', path: '/tenant/wallet' },
-  { name: 'Documents', icon: '📄', path: '/tenant/documents' },
+  { name: 'Transactions', icon: '', path: '/tenant/transactions' },
+  { name: 'Wallet', icon: '', path: '/tenant/wallet' },
+  { name: 'Documents', icon: '', path: '/tenant/documents' },
 ];
 
 function Sidebar() {

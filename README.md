@@ -293,7 +293,7 @@ The application features a **modern, clean interface** with a blue gradient them
 
 #### 4. Tenant Management
 <img width="1902" height="867" alt="TENANTHOME" src="https://github.com/user-attachments/assets/9c678ed8-a855-47ef-a49a-964c0a4f092c" />
-*Landlord view for managing tenants, viewing payment status, and tracking lease information*
+*tenabts view for managing, viewing payment status, and tracking lease information*
 
 ---
 
@@ -407,16 +407,16 @@ Access: IP whitelist + strong authentication
 ### Phase 4: Testing & Verification (Week 4)
 
 **Testing Checklist:**
-- [ ] User registration works
-- [ ] User login works
-- [ ] Property CRUD operations work
-- [ ] Tenant CRUD operations work
-- [ ] Payment tracking works
-- [ ] Dashboard loads correctly
-- [ ] API calls succeed from frontend to backend
-- [ ] CORS is properly configured
-- [ ] Mobile responsiveness works
-- [ ] All images/assets load correctly
+-  User registration works
+-  User login works
+-  Property CRUD operations work
+-  Tenant CRUD operations work
+-  Payment tracking works
+-  Dashboard loads correctly
+-  API calls succeed from frontend to backend
+-  CORS is properly configured
+-  Mobile responsiveness works
+-  All images/assets load correctly
 
 **Load Testing:**
 - Test with multiple concurrent users
@@ -432,7 +432,6 @@ Access: IP whitelist + strong authentication
 | Backend Hosting | Render | Free | $0 |
 | Frontend Hosting | Netlify | Free | $0 |
 | Database | MongoDB Atlas | Free (512MB) | $0 |
-| Domain (Optional) | Namecheap | - | ~$1/month |
 | **Total** | | | **$0-1/month** |
 
 **Note:** Free tiers have limitations (sleep after inactivity, limited bandwidth). For production with many users, upgrades may be needed (~$10-20/month).
@@ -453,20 +452,6 @@ Access: IP whitelist + strong authentication
 - Vercel: Remains free (generous limits)
 
 ---
-
-## Future Enhancements
-
-### Planned Features
-- Mobile money integration (MTN Mobile Money, Airtel Money)
-- Automated email notifications for rent reminders
-- PDF receipt generation
-- Advanced analytics and reporting
-- SMS notifications
-- Property image uploads
-- Maintenance request tracking
-
----
-
 ## Development Notes
 
 - Built with mobile-responsive design

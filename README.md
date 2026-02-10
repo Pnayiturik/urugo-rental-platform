@@ -46,15 +46,15 @@ The system is built with security in mind, featuring JWT-based authentication, r
 - **Payment Records** - Access all transaction records
 
 ### Current Implementation Status
-✅ User authentication (login/register)  
-✅ Property CRUD operations  
-✅ Tenant CRUD operations  
-✅ Dashboard with analytics  
-🚧 Payment tracking and history (almost done)  
-🚧 misconduct tracking and history  
-🚧 Mobile money integration (using SMS URL)  
-🚧 Email notifications (configured but not fully tested)  
-🚧 Lease agreements (in progress)
+User authentication (login/register)  
+Property CRUD operations  
+Tenant CRUD operations  
+Dashboard with analytics  
+Payment tracking and history (almost done)  
+misconduct tracking and history  
+Mobile money integration (using SMS URL)  
+Email notifications (configured but not fully tested)  
+Lease agreements (in progress)
 
 ---
 
@@ -274,24 +274,25 @@ The application features a **modern, clean interface** with a blue gradient them
 **Current Status:** Core UI implemented, color scheme refinement in progress
 
 ### Application Screenshots
+#### 1. Landing Page
+<img width="1917" height="870" alt="landing page" src="https://github.com/user-attachments/assets/f6b2d26b-f09e-4ab2-a17d-43b09e591455" />
 
-#### 1. Login/Authentication Page
-<img width="1905" height="905" alt="Login and Registration Interface" src="https://github.com/user-attachments/assets/e546fc74-b3b5-4490-a477-cb5367605f3a" />
+#### 2. Login/Authentication Page
+<img width="1918" height="867" alt="sign in" src="https://github.com/user-attachments/assets/bc0dde31-85c9-4975-9606-dbae7d6cb884" />
+
 
 *Secure authentication system with modern design, supporting both landlord and tenant login*
 
 ---
 
-#### 2. Landlord Dashboard
-<img width="1913" height="911" alt="Landlord Home Dashboard" src="https://github.com/user-attachments/assets/ea0e4e38-1649-404d-b52c-607b04683da5" />
-
+#### 3. Landlord Dashboard
+<img width="1918" height="870" alt="lardlorddash" src="https://github.com/user-attachments/assets/2283219c-49bf-49d4-ba90-ae244d663492" />
 *Overview dashboard showing key metrics: total properties, active tenants, revenue analytics, and recent transactions*
 
 ---
 
-#### 3. Tenant Management
-<img width="1912" height="910" alt="Tenant/Renter Management Interface" src="https://github.com/user-attachments/assets/c203d2c0-cdc6-436c-92d9-e10759816b88" />
-
+#### 4. Tenant Management
+<img width="1902" height="867" alt="TENANTHOME" src="https://github.com/user-attachments/assets/9c678ed8-a855-47ef-a49a-964c0a4f092c" />
 *Landlord view for managing tenants, viewing payment status, and tracking lease information*
 
 ---
@@ -299,7 +300,7 @@ The application features a **modern, clean interface** with a blue gradient them
 **Additional Screenshots:** Property management, payment portal, and tenant dashboard screenshots will be added as these features are finalized.
 
 **Design Notes:**
-- blue(purple) gradient theme for modern, professional look
+- green gradient theme for modern, professional look
 - Responsive cards and grid layouts
 - Interactive charts using Recharts library
 - Color refinements planned for better contrast and accessibility
@@ -309,24 +310,9 @@ The application features a **modern, clean interface** with a blue gradient them
 ## Deployment Plan
 
 ### Current Status
-The application is currently running in **development mode** on local machines. The deployment to production will follow a phased approach to ensure stability and proper configuration.
-
-### Phase 1: Pre-Deployment Preparation (Week 1-2 feb)
-
-**Tasks:**
-- [ ] Complete all core features (payments, lease agreements)
-- [ ] Comprehensive testing of all features
-- [ ] Code review and optimization
-- [ ] Set up production MongoDB Atlas cluster (free tier: 512MB)
-- [ ] Prepare production environment variables
-- [ ] Create deployment documentation
-
-**Deliverables:**
-- Fully tested application
-- Production-ready codebase
-- Environment configuration files
-
----
+### Phase 1: front-end (Week 1-2 feb)
+front-end deployed on Netlify
+https://urugo.netlify.app/
 
 ### Phase 2: Database Setup (Week 1-2 feb)
 
@@ -336,7 +322,7 @@ The application is currently running in **development mode** on local machines. 
 1. Create MongoDB Atlas account (free tier)
 2. Create new cluster (shared/free tier)
 3. Configure network access (whitelist IPs)
-4. Create database user with strong password
+4. Create a database user with a strong password
 5. Get connection string
 6. Test connection from local environment
 7. Set up automated backups (included in free tier)
@@ -418,58 +404,7 @@ Access: IP whitelist + strong authentication
 **Expected Result:** Backend API running at `https://urugo-rental-api.onrender.com`
 
 ---
-
-### Phase 4: Frontend Deployment (Week 3)
-
-**Platform: Vercel**
-
-**Why Vercel:**
-- Free tier with excellent performance
-- Optimized for React/Vite applications
-- Automatic SSL certificates
-- Global CDN distribution
-- Preview deployments for testing
-
-**Deployment Steps:**
-
-1. **Update Frontend Configuration:**
-   
-   Create `.env.production` file in frontend folder:
-   ```env
-   VITE_API_URL=https://urugo-rental-api.onrender.com/api
-   ```
-
-2. **Test Production Build Locally:**
-   ```bash
-   cd frontend
-   npm run build
-   npm run preview
-   ```
-
-3. **Deploy to Vercel:**
-   
-   **Via Vercel Dashboard:**
-   - Sign up at vercel.com
-   - Click "Add New Project"
-   - Import from GitHub
-   - Select repository
-   - Configure:
-     - **Framework Preset:** Vite
-     - **Root Directory:** frontend
-     - **Build Command:** `npm run build`
-     - **Output Directory:** `dist`
-     - **Environment Variables:** Add `VITE_API_URL`
-   - Click "Deploy"
-
-4. **Get Deployment URL:**
-   - Vercel provides URL: `urugo-rental.vercel.app`
-   - Can add custom domain later
-
-**Expected Result:** Frontend running at `https://urugo-rental.vercel.app`
-
----
-
-### Phase 5: Testing & Verification (Week 4)
+### Phase 4: Testing & Verification (Week 4)
 
 **Testing Checklist:**
 - [ ] User registration works
@@ -490,58 +425,12 @@ Access: IP whitelist + strong authentication
 
 ---
 
-### Phase 6: Domain & SSL (Optional - Future)
-
-**If Custom Domain Needed:**
-
-1. **Purchase Domain:**
-   - Namecheap, Google Domains (~$10-15/year)
-   - Suggested: `urugorental.com` or `urugo.rw`
-
-2. **Configure DNS:**
-   ```
-   A Record: @ → Point to Vercel
-   CNAME: api → urugo-rental-api.onrender.com
-   ```
-
-3. **SSL Certificate:**
-   - Automatic with Render and Vercel
-   - No manual configuration needed
-
----
-
-### Deployment Architecture
-
-```
-┌─────────────────────────────────────────┐
-│         Users (Browsers/Mobile)          │
-└──────────────────┬──────────────────────┘
-                   │
-                   │ HTTPS
-                   │
-        ┌──────────▼──────────┐
-        │                      │
-┌───────▼────────┐    ┌───────▼────────┐
-│   Frontend      │    │   Backend       │
-│   (Vercel)      │◄───┤   (Render)      │
-│   React + Vite  │    │   Node + Express│
-└─────────────────┘    └────────┬────────┘
-                                │
-                                │
-                       ┌────────▼────────┐
-                       │   MongoDB Atlas  │
-                       │   (Cloud DB)     │
-                       └──────────────────┘
-```
-
----
-
 ### Estimated Costs
 
 | Service | Platform | Tier | Monthly Cost |
 |---------|----------|------|--------------|
 | Backend Hosting | Render | Free | $0 |
-| Frontend Hosting | Vercel | Free | $0 |
+| Frontend Hosting | Netlify | Free | $0 |
 | Database | MongoDB Atlas | Free (512MB) | $0 |
 | Domain (Optional) | Namecheap | - | ~$1/month |
 | **Total** | | | **$0-1/month** |

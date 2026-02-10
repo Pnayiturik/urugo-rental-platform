@@ -1,20 +1,24 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { 
+  Home, Building2, Users, Receipt, FileText, 
+  Wallet, LogOut, ChevronLeft, ChevronRight, Menu, X 
+} from 'lucide-react';
 
 const landlordLinks = [
-  { name: 'Home', icon: '🏠', path: '/landlord' },
-  { name: 'Properties', icon: '', path: '/landlord/properties' },
-  { name: 'Renters', icon: '', path: '/landlord/renters' },
-  { name: 'Transactions', icon: '', path: '/landlord/transactions' },
-  { name: 'Documents', icon: '', path: '/landlord/documents' },
+  { name: 'Home', icon: Home, path: '/landlord' },
+  { name: 'Properties', icon: Building2, path: '/landlord/properties' },
+  { name: 'Renters', icon: Users, path: '/landlord/renters' },
+  { name: 'Transactions', icon: Receipt, path: '/landlord/transactions' },
+  { name: 'Documents', icon: FileText, path: '/landlord/documents' },
 ];
 
 const tenantLinks = [
-  { name: 'Home', icon: '🏠', path: '/tenant' },
-  { name: 'Transactions', icon: '', path: '/tenant/transactions' },
-  { name: 'Wallet', icon: '', path: '/tenant/wallet' },
-  { name: 'Documents', icon: '', path: '/tenant/documents' },
+  { name: 'Home', icon: Home, path: '/tenant' },
+  { name: 'Transactions', icon: Receipt, path: '/tenant/transactions' },
+  { name: 'Wallet', icon: Wallet, path: '/tenant/wallet' },
+  { name: 'Documents', icon: FileText, path: '/tenant/documents' },
 ];
 
 function Sidebar() {
@@ -22,7 +26,9 @@ function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
+  const brandColor = '#54ab91';
   const links = user?.role === 'landlord' ? landlordLinks : tenantLinks;
 
   const handleLogout = () => {
@@ -31,166 +37,111 @@ function Sidebar() {
   };
 
   return (
-    <div style={{
-      width: collapsed ? '80px' : '240px',
-      minHeight: '100vh',
-      background: 'var(--dark-bg)',
-      display: 'flex',
-      flexDirection: 'column',
-      transition: 'width var(--transition-normal)',
-      position: 'fixed',
-      left: 0,
-      top: 0,
-      bottom: 0,
-      zIndex: 'var(--z-fixed)',
-      overflowX: 'hidden'
-    }}>
-      {/* Logo Section */}
-      <div style={{
-        padding: 'var(--space-lg)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        borderBottom: '1px solid var(--dark-bg-lighter)'
-      }}>
-        {!collapsed && (
-          <h1 style={{
-            color: 'white',
-            fontSize: 'var(--font-size-xl)',
-            fontWeight: 'var(--font-weight-bold)',
-            whiteSpace: 'nowrap'
-          }}>
-            🏠 <span style={{ color: 'var(--accent-yellow)' }}>Urugo</span>
-          </h1>
-        )}
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          style={{
-            color: 'var(--gray-400)',
-            fontSize: 'var(--font-size-lg)',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            padding: 'var(--space-xs)'
-          }}
-        >
-          {collapsed ? '→' : '←'}
+    <>
+      {/* Mobile Top Header */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-slate-100 px-4 flex items-center justify-between z-[60]">
+        <img src="/logo.png" alt="Urugo" className="h-8 w-auto" />
+        <button onClick={() => setMobileOpen(!mobileOpen)} className="p-2 text-slate-600">
+          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
       </div>
 
-      {/* Navigation Links */}
-      <nav style={{
-        flex: 1,
-        padding: 'var(--space-md) 0',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--space-xs)'
-      }}>
-        {links.map((link) => {
-          const isActive = location.pathname === link.path;
-          return (
-            <Link
-              key={link.path}
-              to={link.path}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-md)',
-                padding: 'var(--space-sm) var(--space-lg)',
-                color: isActive ? 'white' : 'var(--gray-400)',
-                background: isActive ? 'var(--primary-purple)' : 'transparent',
-                borderRadius: isActive ? '0 var(--radius-lg) var(--radius-lg) 0' : '0',
-                textDecoration: 'none',
-                fontSize: 'var(--font-size-sm)',
-                fontWeight: isActive ? 'var(--font-weight-semibold)' : 'var(--font-weight-normal)',
-                transition: 'var(--transition-fast)',
-                whiteSpace: 'nowrap',
-                marginRight: 'var(--space-md)'
-              }}
-            >
-              <span style={{ fontSize: 'var(--font-size-lg)', minWidth: '20px', textAlign: 'center' }}>
-                {link.icon}
-              </span>
-              {!collapsed && <span>{link.name}</span>}
-            </Link>
-          );
-        })}
-      </nav>
+      {/* Mobile Overlay */}
+      {mobileOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/40 z-[55] lg:hidden backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
 
-      {/* User Section */}
-      <div style={{
-        borderTop: '1px solid var(--dark-bg-lighter)',
-        padding: 'var(--space-md)'
-      }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 'var(--space-sm)',
-          padding: 'var(--space-sm)',
-          borderRadius: 'var(--radius-md)',
-          marginBottom: 'var(--space-sm)'
-        }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: 'var(--radius-full)',
-            background: 'var(--primary-purple)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'white',
-            fontSize: 'var(--font-size-sm)',
-            fontWeight: 'var(--font-weight-bold)',
-            flexShrink: 0
-          }}>
-            {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
-          </div>
+      {/* Sidebar Component */}
+      <aside 
+        style={{ backgroundColor: brandColor }}
+        className={`fixed left-0 top-0 bottom-0 z-[58] flex flex-col text-white transition-all duration-300 ease-in-out shadow-xl shadow-[#54ab91]/20
+          ${collapsed ? 'w-20' : 'w-64'} 
+          ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+      >
+        {/* Desktop Logo Section */}
+        <div className="hidden lg:flex h-20 items-center justify-between px-6 border-b border-white/10">
           {!collapsed && (
-            <div style={{ overflow: 'hidden' }}>
-              <p style={{
-                color: 'white',
-                fontSize: 'var(--font-size-sm)',
-                fontWeight: 'var(--font-weight-medium)',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}>
-                {user?.firstName} {user?.lastName}
-              </p>
-              <p style={{
-                color: 'var(--gray-500)',
-                fontSize: 'var(--font-size-xs)',
-                textTransform: 'capitalize'
-              }}>
-                {user?.role}
-              </p>
-            </div>
+            <img 
+              src="/logo.png" 
+              alt="Urugo" 
+              className="h-8 w-auto brightness-0 invert" // Forces logo to white
+            />
           )}
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-1.5 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors"
+          >
+            {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+          </button>
         </div>
 
-        <button
-          onClick={handleLogout}
-          style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-sm)',
-            padding: 'var(--space-sm) var(--space-md)',
-            color: 'var(--gray-400)',
-            background: 'transparent',
-            border: 'none',
-            borderRadius: 'var(--radius-md)',
-            cursor: 'pointer',
-            fontSize: 'var(--font-size-sm)',
-            transition: 'var(--transition-fast)',
-            whiteSpace: 'nowrap'
-          }}
-        >
-          <span>🚪</span>
-          {!collapsed && <span>Logout</span>}
-        </button>
-      </div>
-    </div>
+        {/* Navigation Links */}
+        <nav className="flex-1 py-6 pt-20 lg:pt-6 space-y-1 px-3 overflow-y-auto custom-scrollbar">
+          {links.map((link) => {
+            const isActive = location.pathname === link.path;
+            const Icon = link.icon;
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                  isActive 
+                    ? 'bg-white text-[#54ab91] shadow-lg shadow-black/5' 
+                    : 'text-white/80 hover:bg-white/10 hover:text-white'
+                }`}
+              >
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 2} className="shrink-0" />
+                <span className={`text-sm font-bold whitespace-nowrap ${collapsed && 'lg:hidden'}`}>
+                  {link.name}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* User Footer */}
+        <div className="p-4 border-t border-white/10 bg-black/5">
+          <div className={`flex items-center gap-3 p-2 rounded-xl mb-2 ${collapsed && 'lg:justify-center'}`}>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-white text-[#54ab91] shrink-0 font-bold text-xs">
+              {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+            </div>
+            {(!collapsed || mobileOpen) && (
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-white truncate">
+                  {user?.firstName} {user?.lastName}
+                </p>
+                <p className="text-[10px] font-black text-white/60 uppercase tracking-widest">
+                  {user?.role}
+                </p>
+              </div>
+            )}
+          </div>
+          
+          <button
+            onClick={handleLogout}
+            className={`w-full flex items-center gap-4 px-4 py-3 text-white/70 hover:text-white hover:bg-red-500/20 rounded-xl transition-all ${collapsed && 'lg:justify-center'}`}
+          >
+            <LogOut size={20} />
+            {(!collapsed || mobileOpen) && <span className="text-sm font-bold">Logout</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Custom scrollbar to keep it clean against the brand color */}
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 10px;
+        }
+      `}</style>
+    </>
   );
 }
 

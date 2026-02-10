@@ -1,5 +1,23 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getTenantPayments, processPayment } from '../../services/paymentService';
+import { 
+  CreditCard, 
+  History, 
+  Calendar, 
+  Building2, 
+  AlertCircle, 
+  CheckCircle2, 
+  Smartphone, 
+  X, 
+  Loader2, 
+  ChevronRight,
+  Info
+} from 'lucide-react';
+
+/**
+ * Urugo Rental - Tenant Dashboard (Home)
+ * Modernized with Tailwind CSS & Brand Color #54ab91
+ */
 
 function Home() {
   const [payments, setPayments] = useState([]);
@@ -13,6 +31,8 @@ function Home() {
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
 
+  const brandColor = '#54ab91';
+
   useEffect(() => {
     fetchPayments();
   }, []);
@@ -20,7 +40,7 @@ function Home() {
   const fetchPayments = async () => {
     try {
       const data = await getTenantPayments();
-      setPayments(data.payments);
+      setPayments(data.payments || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -76,157 +96,113 @@ function Home() {
     });
   };
 
-  if (loading) {
-    return <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--gray-500)' }}>Loading...</div>;
-  }
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center">
+      <Loader2 className="animate-spin text-[#54ab91]" size={40} />
+    </div>
+  );
 
   return (
-    <div>
+    <div className="pt-20 lg:pt-8 px-4 sm:px-8 pb-8 max-w-5xl mx-auto space-y-8 font-sans">
+      
       {/* Welcome Header */}
-      <div style={{ marginBottom: 'var(--space-xl)' }}>
-        <h2 style={{ fontSize: 'var(--font-size-2xl)', color: 'var(--primary-purple)', marginBottom: 'var(--space-xs)' }}>
-          Welcome to Your Dashboard
-        </h2>
-        <p style={{ color: 'var(--gray-600)' }}>Manage your rent payments and view your payment history</p>
+      <div>
+        <h2 className="text-3xl font-black text-slate-900 tracking-tight">Welcome to Urugo</h2>
+        <p className="text-slate-500 font-medium mt-1 uppercase tracking-widest text-xs">Tenant Dashboard</p>
       </div>
 
-      {/* Current Rent Due Card */}
+      {/* Hero Section: Current Rent Due */}
       {currentPayment ? (
-        <div style={{
-          background: currentPayment.status === 'overdue' ? 'linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%)' : 'linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%)',
-          borderRadius: 'var(--radius-xl)',
-          padding: 'var(--space-xl)',
-          marginBottom: 'var(--space-xl)',
-          border: `2px solid ${currentPayment.status === 'overdue' ? 'var(--error-red)' : 'var(--primary-purple)'}`,
-          boxShadow: 'var(--shadow-lg)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-lg)' }}>
-            <div>
-              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-600)', marginBottom: 'var(--space-xs)' }}>
-                {currentPayment.status === 'overdue' ? '⚠️ OVERDUE PAYMENT' : '💰 Current Rent Due'}
-              </p>
-              <h1 style={{ 
-                fontSize: 'var(--font-size-4xl)', 
-                fontWeight: 'var(--font-weight-bold)', 
-                color: currentPayment.status === 'overdue' ? 'var(--error-red)' : 'var(--primary-purple)',
-                marginBottom: 'var(--space-sm)'
-              }}>
-                ${(currentPayment.amount + currentPayment.penaltyAmount).toLocaleString()}
+        <div 
+          className={`relative overflow-hidden rounded-[2.5rem] p-8 md:p-12 border-2 transition-all ${
+            currentPayment.status === 'overdue' 
+            ? 'bg-red-50/50 border-red-200' 
+            : 'bg-[#54ab91]/5 border-[#54ab91]/20'
+          }`}
+        >
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                {currentPayment.status === 'overdue' 
+                  ? <AlertCircle className="text-red-500" size={20} />
+                  : <CreditCard className="text-[#54ab91]" size={20} />
+                }
+                <span className={`text-xs font-black uppercase tracking-[0.2em] ${
+                  currentPayment.status === 'overdue' ? 'text-red-600' : 'text-[#54ab91]'
+                }`}>
+                  {currentPayment.status === 'overdue' ? 'Payment Overdue' : 'Upcoming Rent'}
+                </span>
+              </div>
+              
+              <h1 className={`text-5xl md:text-6xl font-black tracking-tighter ${
+                currentPayment.status === 'overdue' ? 'text-red-600' : 'text-slate-900'
+              }`}>
+                {(currentPayment.amount + currentPayment.penaltyAmount).toLocaleString()} <span className="text-2xl">RWF</span>
               </h1>
-              {currentPayment.penaltyAmount > 0 && (
-                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--error-red)', marginBottom: 'var(--space-xs)' }}>
-                  Includes ${currentPayment.penaltyAmount} late payment penalty
-                </p>
-              )}
-              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-600)' }}>
-                Due Date: <strong>{formatDate(currentPayment.dueDate)}</strong>
-              </p>
-              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-600)' }}>
-                Property: <strong>{currentPayment.propertyId?.name}</strong>
-              </p>
-            </div>
-            <span style={{
-              padding: 'var(--space-xs) var(--space-md)',
-              borderRadius: 'var(--radius-full)',
-              background: currentPayment.status === 'overdue' ? 'var(--error-red)' : 'var(--warning-yellow-dark)',
-              color: 'white',
-              fontSize: 'var(--font-size-xs)',
-              fontWeight: 'var(--font-weight-bold)',
-              textTransform: 'uppercase'
-            }}>
-              {currentPayment.status}
-            </span>
-          </div>
 
-          <button
-            onClick={() => handlePayClick(currentPayment)}
-            style={{
-              background: currentPayment.status === 'overdue' ? 'var(--error-red)' : 'var(--primary-purple)',
-              color: 'white',
-              padding: 'var(--space-md) var(--space-2xl)',
-              borderRadius: 'var(--radius-lg)',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 'var(--font-size-base)',
-              fontWeight: 'var(--font-weight-bold)',
-              width: '100%',
-              boxShadow: 'var(--shadow-md)',
-              transition: 'var(--transition-fast)'
-            }}
-          >
-            💳 Pay Now
-          </button>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-slate-600 font-bold">
+                  <Calendar size={16} /> 
+                  <span>Due Date: {formatDate(currentPayment.dueDate)}</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-500 text-sm font-medium">
+                  <Building2 size={16} />
+                  <span>{currentPayment.propertyId?.name}</span>
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handlePayClick(currentPayment)}
+              style={{ backgroundColor: currentPayment.status === 'overdue' ? '#dc2626' : brandColor }}
+              className="w-full md:w-auto px-10 py-5 text-white rounded-2xl font-black text-lg shadow-xl shadow-[#54ab91]/20 active:scale-95 transition-all flex items-center justify-center gap-3"
+            >
+              <Smartphone size={24} />
+              Pay with Mobile Money
+            </button>
+          </div>
+          
+          {/* Background Decorative Icon */}
+          <CreditCard className="absolute -bottom-10 -right-10 text-slate-900/5 rotate-12" size={240} />
         </div>
       ) : (
-        <div style={{
-          background: 'linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)',
-          borderRadius: 'var(--radius-xl)',
-          padding: 'var(--space-xl)',
-          marginBottom: 'var(--space-xl)',
-          border: '2px solid var(--success-green)',
-          textAlign: 'center'
-        }}>
-          <p style={{ fontSize: 'var(--font-size-3xl)', marginBottom: 'var(--space-md)' }}>✅</p>
-          <h3 style={{ fontSize: 'var(--font-size-xl)', color: 'var(--success-green)', marginBottom: 'var(--space-xs)' }}>
-            All Caught Up!
-          </h3>
-          <p style={{ color: 'var(--gray-600)' }}>You have no pending payments</p>
+        <div className="bg-emerald-50 border border-emerald-100 rounded-[2.5rem] p-12 text-center">
+          <div className="bg-white w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm shadow-emerald-200">
+            <CheckCircle2 className="text-emerald-500" size={40} />
+          </div>
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight">All Caught Up!</h3>
+          <p className="text-slate-600 font-medium mt-2">You have no pending payments at this time.</p>
         </div>
       )}
 
-      {/* Payment History */}
-      <div style={{
-        background: 'white',
-        borderRadius: 'var(--radius-lg)',
-        padding: 'var(--space-xl)',
-        boxShadow: 'var(--shadow-sm)',
-        border: '1px solid var(--gray-200)'
-      }}>
-        <h3 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--space-lg)', color: 'var(--gray-900)' }}>
-          Payment History
-        </h3>
+      {/* Payment History Section */}
+      <div className="bg-white border border-slate-100 rounded-[2.5rem] p-6 md:p-10">
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight flex items-center gap-3">
+            <History className="text-[#54ab91]" size={24} /> Payment History
+          </h3>
+        </div>
 
         {paidPayments.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--gray-400)' }}>
-            <p style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--space-sm)' }}>📭</p>
-            <p>No payment history yet</p>
+          <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-3xl text-slate-400 font-medium">
+            No history found. Your future payments will appear here.
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+          <div className="space-y-4">
             {paidPayments.map((payment) => (
-              <div key={payment._id} style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: 'var(--space-md)',
-                borderRadius: 'var(--radius-md)',
-                background: 'var(--gray-50)',
-                border: '1px solid var(--gray-200)'
-              }}>
-                <div>
-                  <p style={{ fontWeight: 'var(--font-weight-semibold)', color: 'var(--gray-900)', fontSize: 'var(--font-size-sm)' }}>
-                    Rent Payment - {payment.paymentMonth}
-                  </p>
-                  <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)', marginTop: 'var(--space-xs)' }}>
-                    Paid on {formatDate(payment.paidDate)}
-                  </p>
+              <div key={payment._id} className="group flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 rounded-3xl bg-slate-50 border border-transparent hover:border-[#54ab91]/30 transition-all">
+                <div className="space-y-1">
+                  <p className="font-black text-slate-900 text-lg">Rent Payment • {payment.paymentMonth}</p>
+                  <div className="flex items-center gap-2 text-slate-400 text-sm font-bold uppercase tracking-wider">
+                    <Calendar size={14} />
+                    <span>Paid on {formatDate(payment.paidDate)}</span>
+                  </div>
                 </div>
-                <div style={{ textAlign: 'right' }}>
-                  <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--success-green)' }}>
-                    ${payment.amount}
-                  </p>
-                  <span style={{
-                    display: 'inline-block',
-                    padding: 'var(--space-xs) var(--space-sm)',
-                    borderRadius: 'var(--radius-full)',
-                    background: '#ECFDF5',
-                    color: 'var(--success-green)',
-                    fontSize: 'var(--font-size-xs)',
-                    fontWeight: 'var(--font-weight-semibold)',
-                    marginTop: 'var(--space-xs)'
-                  }}>
-                    Paid
-                  </span>
+                <div className="mt-4 sm:mt-0 text-left sm:text-right">
+                  <p className="text-xl font-black text-emerald-500">{payment.amount.toLocaleString()} RWF</p>
+                  <div className="inline-flex items-center gap-1.5 bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mt-2">
+                    <CheckCircle2 size={10} /> Verified
+                  </div>
                 </div>
               </div>
             ))}
@@ -236,112 +212,93 @@ function Home() {
 
       {/* Payment Modal */}
       {showModal && selectedPayment && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 'var(--z-modal)',
-          padding: 'var(--space-lg)'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: 'var(--radius-xl)',
-            width: '100%',
-            maxWidth: '500px',
-            padding: 'var(--space-xl)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
-              <h3 style={{ fontSize: 'var(--font-size-xl)', color: 'var(--gray-900)' }}>Pay Rent</h3>
-              <button onClick={() => setShowModal(false)} style={{ fontSize: 'var(--font-size-xl)', color: 'var(--gray-500)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden border border-slate-100">
+            <div className="p-8 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">Confirm Payment</h3>
+              <button onClick={() => setShowModal(false)} className="p-2 text-slate-400 hover:text-slate-900">
+                <X size={24} />
+              </button>
             </div>
 
-            {/* Payment Summary */}
-            <div style={{
-              background: 'var(--gray-50)',
-              padding: 'var(--space-md)',
-              borderRadius: 'var(--radius-md)',
-              marginBottom: 'var(--space-lg)'
-            }}>
-              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-600)', marginBottom: 'var(--space-xs)' }}>
-                Property: <strong>{selectedPayment.propertyId?.name}</strong>
-              </p>
-              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-600)', marginBottom: 'var(--space-xs)' }}>
-                Rent Amount: <strong>${selectedPayment.amount}</strong>
-              </p>
-              {selectedPayment.penaltyAmount > 0 && (
-                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--error-red)', marginBottom: 'var(--space-xs)' }}>
-                  Late Penalty: <strong>${selectedPayment.penaltyAmount}</strong>
-                </p>
-              )}
-              <div style={{ borderTop: '1px solid var(--gray-300)', marginTop: 'var(--space-sm)', paddingTop: 'var(--space-sm)' }}>
-                <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--primary-purple)' }}>
-                  Total: ${(selectedPayment.amount + selectedPayment.penaltyAmount).toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            {error && (
-              <div style={{
-                background: '#FEF2F2',
-                border: '1px solid var(--error-red)',
-                color: 'var(--error-red)',
-                padding: 'var(--space-sm) var(--space-md)',
-                borderRadius: 'var(--radius-md)',
-                marginBottom: 'var(--space-md)',
-                fontSize: 'var(--font-size-sm)'
-              }}>
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-              {/* Payment Method */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>
-                  Payment Method
-                </label>
-                <select name="paymentMethod" value={formData.paymentMethod} onChange={handleChange} required
-                  style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)', background: 'white' }}
-                >
-                  <option value="">Select method</option>
-                  <option value="mtn_mobile_money">📱 MTN Mobile Money</option>
-                  <option value="airtel_money">📱 Airtel Money</option>
-                </select>
-              </div>
-
-              {/* Phone Number */}
-              {formData.paymentMethod && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>
-                    Phone Number
-                  </label>
-                  <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} placeholder="+250 700 000 000" required
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                  />
+            <div className="p-8 space-y-8">
+              {/* Payment Summary Box */}
+              <div className="bg-slate-50 p-6 rounded-3xl space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500 font-bold uppercase tracking-wider">Base Rent</span>
+                  <span className="text-slate-900 font-black">{selectedPayment.amount.toLocaleString()} RWF</span>
                 </div>
-              )}
-
-              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)', background: '#FEF3C7', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
-                ℹ️ You will receive a prompt on your phone to confirm the payment
-              </p>
-
-              {/* Submit Buttons */}
-              <div style={{ display: 'flex', gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
-                <button type="button" onClick={() => setShowModal(false)}
-                  style={{ flex: 1, padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', background: 'white', color: 'var(--gray-600)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)' }}
-                >
-                  Cancel
-                </button>
-                <button type="submit" disabled={processing}
-                  style={{ flex: 1, padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--primary-purple)', color: 'white', cursor: processing ? 'not-allowed' : 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', opacity: processing ? 0.6 : 1 }}
-                >
-                  {processing ? 'Processing...' : 'Pay Now'}
-                </button>
+                {selectedPayment.penaltyAmount > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-red-500 font-bold uppercase tracking-wider">Late Penalty</span>
+                    <span className="text-red-600 font-black">+{selectedPayment.penaltyAmount.toLocaleString()} RWF</span>
+                  </div>
+                )}
+                <div className="h-[1px] bg-slate-200 pt-2" />
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-900 font-black uppercase tracking-widest text-xs">Total Amount</span>
+                  <span className="text-2xl font-black text-[#54ab91]">
+                    {(selectedPayment.amount + selectedPayment.penaltyAmount).toLocaleString()} RWF
+                  </span>
+                </div>
               </div>
-            </form>
+
+              {error && <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-xs font-bold">{error}</div>}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Payment Provider</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {['mtn_mobile_money', 'airtel_money'].map((method) => (
+                      <button
+                        key={method}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, paymentMethod: method })}
+                        className={`p-4 rounded-2xl border-2 text-sm font-black transition-all flex flex-col items-center gap-2 ${
+                          formData.paymentMethod === method 
+                          ? 'border-[#54ab91] bg-[#54ab91]/5 text-[#54ab91]' 
+                          : 'border-slate-100 bg-white text-slate-400 hover:border-slate-200'
+                        }`}
+                      >
+                        <Smartphone size={24} />
+                        {method === 'mtn_mobile_money' ? 'MTN MoMo' : 'Airtel Money'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {formData.paymentMethod && (
+                  <div className="space-y-1.5 animate-in slide-in-from-top-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Mobile Number</label>
+                    <input 
+                      type="text" 
+                      name="phoneNumber" 
+                      value={formData.phoneNumber} 
+                      onChange={handleChange} 
+                      placeholder="+250 7..." 
+                      required
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] font-bold text-slate-900 transition-all" 
+                    />
+                  </div>
+                )}
+
+                <div className="p-4 bg-amber-50 rounded-2xl flex items-start gap-3">
+                  <Info size={18} className="text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-[11px] font-bold text-amber-700 leading-relaxed uppercase tracking-tighter">
+                    Follow the USSD prompt on your phone after clicking pay to enter your PIN.
+                  </p>
+                </div>
+
+                <button 
+                  type="submit" 
+                  disabled={processing || !formData.paymentMethod}
+                  style={{ backgroundColor: brandColor }}
+                  className="w-full py-5 text-white font-black rounded-2xl active:scale-95 transition-all shadow-xl shadow-[#54ab91]/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {processing ? <Loader2 className="animate-spin" size={20} /> : 'Complete Secure Payment'}
+                </button>
+              </form>
+            </div>
           </div>
         </div>
       )}

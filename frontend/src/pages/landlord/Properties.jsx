@@ -1,6 +1,24 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getProperties, createProperty, deleteProperty } from '../../services/propertyService';
+import { 
+  Plus, 
+  MapPin, 
+  Trash2, 
+  Building2, 
+  X, 
+  Bed, 
+  Bath, 
+  Banknote, 
+  Loader2, 
+  ExternalLink,
+  Search
+} from 'lucide-react';
+
+/**
+ * Urugo Rental - Properties Management
+ * Modern UI with Tailwind CSS and Brand Color #54ab91
+ */
 
 function Properties() {
   const [properties, setProperties] = useState([]);
@@ -19,7 +37,9 @@ function Properties() {
     squareFeet: '',
     rent: ''
   });
+  
   const navigate = useNavigate();
+  const brandColor = '#54ab91';
 
   useEffect(() => {
     fetchProperties();
@@ -91,172 +111,104 @@ function Properties() {
   };
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--gray-500)' }}>Loading...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="animate-spin text-[#54ab91]" size={40} />
+      </div>
+    );
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 'var(--space-lg)'
-      }}>
-        <h2 style={{ fontSize: 'var(--font-size-2xl)', color: 'var(--primary-purple)' }}>
-          Properties
-        </h2>
+    <div className="pt-20 lg:pt-8 px-4 sm:px-8 pb-8 max-w-7xl mx-auto space-y-8 font-sans">
+      
+      {/* Header Section */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Properties</h2>
+          <p className="text-sm text-slate-500 font-medium uppercase tracking-widest mt-1">Manage your rental assets</p>
+        </div>
         <button
           onClick={() => setShowModal(true)}
-          style={{
-            background: 'var(--primary-purple)',
-            color: 'white',
-            padding: 'var(--space-sm) var(--space-lg)',
-            borderRadius: 'var(--radius-md)',
-            border: 'none',
-            cursor: 'pointer',
-            fontSize: 'var(--font-size-sm)',
-            fontWeight: 'var(--font-weight-semibold)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-xs)'
-          }}
+          style={{ backgroundColor: brandColor }}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 text-white rounded-2xl font-bold active:scale-95 transition-all shadow-none"
         >
-          + Add Property
+          <Plus size={20} />
+          <span>Add Property</span>
         </button>
       </div>
 
-      {/* Properties Grid */}
+      {/* Grid Content */}
       {properties.length === 0 ? (
-        <div style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-3xl)',
-          textAlign: 'center',
-          border: '1px solid var(--gray-200)',
-          boxShadow: 'var(--shadow-sm)'
-        }}>
-          <p style={{ fontSize: 'var(--font-size-4xl)', marginBottom: 'var(--space-md)' }}>🏢</p>
-          <p style={{ color: 'var(--gray-500)', marginBottom: 'var(--space-md)' }}>
-            No properties yet
-          </p>
+        <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] p-16 text-center">
+          <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-300">
+            <Building2 size={40} />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 mb-2">No properties yet</h3>
+          <p className="text-slate-500 mb-8 max-w-sm mx-auto font-medium">Get started by listing your first apartment, house, or commercial space.</p>
           <button
             onClick={() => setShowModal(true)}
-            style={{
-              background: 'var(--primary-purple)',
-              color: 'white',
-              padding: 'var(--space-sm) var(--space-lg)',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: 'var(--font-size-sm)',
-              fontWeight: 'var(--font-weight-semibold)'
-            }}
+            style={{ color: brandColor }}
+            className="font-bold hover:underline underline-offset-4"
           >
-            Add Your First Property
+            Add your first property
           </button>
         </div>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-          gap: 'var(--space-lg)'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {properties.map((property) => (
-            <div key={property._id} style={{
-              background: 'white',
-              borderRadius: 'var(--radius-lg)',
-              overflow: 'hidden',
-              boxShadow: 'var(--shadow-sm)',
-              border: '1px solid var(--gray-200)'
-            }}>
-              {/* Card Header */}
-              <div style={{
-                background: 'var(--gradient-primary)',
-                padding: 'var(--space-lg)',
-                color: 'white'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <div>
-                    <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)' }}>
+            <div key={property._id} className="group bg-white border border-slate-200 rounded-3xl overflow-hidden transition-all hover:border-[#54ab91]">
+              {/* Card Header Overlay style */}
+              <div className="p-6 pb-4 border-b border-slate-50">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="space-y-1">
+                    <h3 className="text-xl font-black text-slate-900 leading-tight group-hover:text-[#54ab91] transition-colors line-clamp-1">
                       {property.name}
-                    </p>
-                    <p style={{ fontSize: 'var(--font-size-xs)', opacity: 0.8, marginTop: 'var(--space-xs)' }}>
-                      {property.address.street}, {property.address.city}
-                    </p>
+                    </h3>
+                    <div className="flex items-center gap-1 text-slate-400 text-xs font-semibold">
+                      <MapPin size={12} />
+                      <span className="truncate">{property.address.street}, {property.address.city}</span>
+                    </div>
                   </div>
-                  <span style={{
-                    background: 'rgba(255,255,255,0.2)',
-                    padding: 'var(--space-xs) var(--space-sm)',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: 'var(--font-size-xs)',
-                    textTransform: 'capitalize'
-                  }}>
+                  <span className="px-3 py-1 bg-slate-100 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-500">
                     {property.propertyType}
                   </span>
                 </div>
               </div>
 
-              {/* Card Body */}
-              <div style={{ padding: 'var(--space-lg)' }}>
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  marginBottom: 'var(--space-md)'
-                }}>
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--primary-purple)' }}>
-                      {property.units.length}
-                    </p>
-                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)' }}>Units</p>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--success-green)' }}>
-                      {property.units.filter(u => u.status === 'occupied').length}
-                    </p>
-                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)' }}>Occupied</p>
-                  </div>
-                  <div style={{ textAlign: 'center' }}>
-                    <p style={{ fontSize: 'var(--font-size-xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--warning-yellow-dark)' }}>
-                      {property.units.filter(u => u.status === 'vacant').length}
-                    </p>
-                    <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)' }}>Vacant</p>
-                  </div>
+              {/* Card Summary Stats */}
+              <div className="p-6 grid grid-cols-3 gap-2 text-center bg-slate-50/30">
+                <div>
+                  <p className="text-lg font-black text-slate-900">{property.units.length}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Total Units</p>
                 </div>
+                <div>
+                  <p className="text-lg font-black text-emerald-500">
+                    {property.units.filter(u => u.status === 'occupied').length}
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Occupied</p>
+                </div>
+                <div>
+                  <p className="text-lg font-black text-amber-500">
+                    {property.units.filter(u => u.status === 'vacant').length}
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Vacant</p>
+                </div>
+              </div>
 
-                {/* Actions */}
-                <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-                  <button
-                    onClick={() => navigate(`/landlord/properties/${property._id}`)}
-                    style={{
-                      flex: 1,
-                      padding: 'var(--space-sm)',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--primary-purple)',
-                      background: 'transparent',
-                      color: 'var(--primary-purple)',
-                      cursor: 'pointer',
-                      fontSize: 'var(--font-size-sm)',
-                      fontWeight: 'var(--font-weight-semibold)'
-                    }}
-                  >
-                    View Details
-                  </button>
-                  <button
-                    onClick={() => handleDelete(property._id)}
-                    style={{
-                      padding: 'var(--space-sm) var(--space-md)',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--error-red)',
-                      background: 'transparent',
-                      color: 'var(--error-red)',
-                      cursor: 'pointer',
-                      fontSize: 'var(--font-size-sm)'
-                    }}
-                  >
-                    🗑️
-                  </button>
-                </div>
+              {/* Card Actions */}
+              <div className="p-4 flex gap-2">
+                <button
+                  onClick={() => navigate(`/landlord/properties/${property._id}`)}
+                  className="flex-1 py-3 bg-slate-100 text-slate-900 rounded-2xl text-sm font-bold flex items-center justify-center gap-2 hover:bg-[#54ab91] hover:text-white transition-all active:scale-95"
+                >
+                  <ExternalLink size={16} /> Details
+                </button>
+                <button
+                  onClick={() => handleDelete(property._id)}
+                  className="w-12 h-12 flex items-center justify-center text-slate-300 hover:text-red-500 transition-colors"
+                >
+                  <Trash2 size={20} />
+                </button>
               </div>
             </div>
           ))}
@@ -265,163 +217,141 @@ function Properties() {
 
       {/* Add Property Modal */}
       {showModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 'var(--z-modal)',
-          padding: 'var(--space-lg)'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: 'var(--radius-xl)',
-            width: '100%',
-            maxWidth: '550px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: 'var(--space-xl)'
-          }}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col border border-slate-100">
             {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
-              <h3 style={{ fontSize: 'var(--font-size-xl)', color: 'var(--gray-900)' }}>Add New Property</h3>
-              <button onClick={() => setShowModal(false)} style={{ fontSize: 'var(--font-size-xl)', color: 'var(--gray-500)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+            <div className="px-8 py-6 border-b border-slate-50 flex justify-between items-center">
+              <h3 className="text-2xl font-black text-slate-900 tracking-tight">New Property</h3>
+              <button onClick={() => setShowModal(false)} className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
+                <X size={24} />
+              </button>
             </div>
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-              {/* Property Name */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>Property Name</label>
-                <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="e.g. Central Park Apartments" required
-                  style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                />
-              </div>
-
-              {/* Property Type */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>Property Type</label>
-                <select name="propertyType" value={formData.propertyType} onChange={handleChange} required
-                  style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)', background: 'white' }}
-                >
-                  <option value="">Select type</option>
-                  <option value="apartment">Apartment</option>
-                  <option value="house">House</option>
-                  <option value="commercial">Commercial</option>
-                </select>
-              </div>
-
-              {/* Street Address */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>Street Address</label>
-                <input type="text" name="address.street" value={formData.address.street} onChange={handleChange} placeholder="e.g. 123 Main Street" required
-                  style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                />
-              </div>
-
-              {/* City & District */}
-              <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>City</label>
-                  <input type="text" name="address.city" value={formData.address.city} onChange={handleChange} placeholder="e.g. Kigali" required
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                  />
-                </div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>District</label>
-                  <input type="text" name="address.district" value={formData.address.district} onChange={handleChange} placeholder="e.g. Gasabo"
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                  />
-                </div>
-              </div>
-
-              {/* Add Units Section */}
-              <div style={{ borderTop: '1px solid var(--gray-200)', paddingTop: 'var(--space-md)', marginTop: 'var(--space-sm)' }}>
-                <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)', marginBottom: 'var(--space-sm)', display: 'block' }}>
-                  Add Units
-                </label>
-
-                {/* Unit Input Row with Labels */}
-                <div style={{ display: 'flex', gap: 'var(--space-sm)', marginBottom: 'var(--space-sm)' }}>
-                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                    <label style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)' }}>Unit Number</label>
-                    <input type="text" name="unitNumber" value={unitData.unitNumber} onChange={handleUnitChange} placeholder="e.g. 101"
-                      style={{ padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-sm)' }}
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+              <form onSubmit={handleSubmit} className="space-y-8">
+                
+                {/* General Info */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1.5 col-span-1 md:col-span-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Property Name</label>
+                    <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="e.g. Kigali Heights" required
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] focus:bg-white transition-all text-sm font-medium"
                     />
                   </div>
-                  <div style={{ width: '75px', display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                    <label style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)' }}>Bedrooms</label>
-                    <input type="number" name="bedrooms" value={unitData.bedrooms} onChange={handleUnitChange}
-                      style={{ padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-sm)' }}
-                    />
-                  </div>
-                  <div style={{ width: '75px', display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                    <label style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)' }}>Bathrooms</label>
-                    <input type="number" name="bathrooms" value={unitData.bathrooms} onChange={handleUnitChange}
-                      style={{ padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-sm)' }}
-                    />
-                  </div>
-                  <div style={{ width: '90px', display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                    <label style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)' }}>Rent ($)</label>
-                    <input type="number" name="rent" value={unitData.rent} onChange={handleUnitChange}
-                      style={{ padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-sm)' }}
-                    />
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                    <label style={{ fontSize: 'var(--font-size-xs)', color: 'transparent' }}>.</label>
-                    <button type="button" onClick={addUnit}
-                      style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--success-green)', color: 'white', cursor: 'pointer', fontSize: 'var(--font-size-lg)' }}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Property Type</label>
+                    <select name="propertyType" value={formData.propertyType} onChange={handleChange} required
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] focus:bg-white transition-all text-sm font-medium appearance-none"
                     >
-                      +
-                    </button>
+                      <option value="">Select Type</option>
+                      <option value="apartment">Apartment</option>
+                      <option value="house">House</option>
+                      <option value="commercial">Commercial</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Street Address</label>
+                    <input type="text" name="address.street" value={formData.address.street} onChange={handleChange} placeholder="KG 101 St" required
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] focus:bg-white transition-all text-sm font-medium"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">City</label>
+                    <input type="text" name="address.city" value={formData.address.city} onChange={handleChange} placeholder="Kigali" required
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] focus:bg-white transition-all text-sm font-medium"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">District</label>
+                    <input type="text" name="address.district" value={formData.address.district} onChange={handleChange} placeholder="Gasabo"
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] focus:bg-white transition-all text-sm font-medium"
+                    />
                   </div>
                 </div>
 
-                {/* Units List */}
-                {formData.units.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)', marginTop: 'var(--space-sm)' }}>
+                {/* Units Section */}
+                <div className="pt-8 border-t border-slate-100">
+                  <div className="flex items-center gap-2 mb-6">
+                    <Plus size={18} className="text-[#54ab91]" strokeWidth={3} />
+                    <h4 className="text-sm font-black text-slate-900 uppercase tracking-widest">Add Units</h4>
+                  </div>
+
+                  {/* Add Unit Row */}
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6 bg-slate-50 p-4 rounded-3xl">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Number</label>
+                      <input type="text" name="unitNumber" value={unitData.unitNumber} onChange={handleUnitChange} placeholder="101"
+                        className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl outline-none text-xs font-bold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Beds</label>
+                      <input type="number" name="bedrooms" value={unitData.bedrooms} onChange={handleUnitChange}
+                        className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl outline-none text-xs font-bold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Baths</label>
+                      <input type="number" name="bathrooms" value={unitData.bathrooms} onChange={handleUnitChange}
+                        className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl outline-none text-xs font-bold"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Rent</label>
+                      <input type="number" name="rent" value={unitData.rent} onChange={handleUnitChange} placeholder="RWF"
+                        className="w-full px-3 py-2 bg-white border border-slate-100 rounded-xl outline-none text-xs font-bold"
+                      />
+                    </div>
+                    <div className="flex items-end">
+                      <button type="button" onClick={addUnit} style={{ backgroundColor: brandColor }}
+                        className="w-full py-2.5 text-white rounded-xl active:scale-95 transition-transform flex items-center justify-center"
+                      >
+                        <Plus size={18} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Dynamic Units List */}
+                  <div className="space-y-2">
                     {formData.units.map((unit, index) => (
-                      <div key={index} style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: 'var(--space-sm) var(--space-md)',
-                        background: 'var(--gray-50)',
-                        borderRadius: 'var(--radius-md)',
-                        border: '1px solid var(--gray-200)'
-                      }}>
-                        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-700)' }}>
-                          Unit {unit.unitNumber} • {unit.bedrooms}BR • {unit.bathrooms}BA • ${unit.rent}/mo
-                        </span>
-                        <button type="button" onClick={() => removeUnit(index)}
-                          style={{ background: 'none', border: 'none', color: 'var(--error-red)', cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}
-                        >
-                          ✕
+                      <div key={index} className="flex justify-between items-center p-3 bg-[#54ab91]/5 border border-[#54ab91]/10 rounded-2xl group transition-all">
+                        <div className="flex items-center gap-4 text-xs font-bold text-slate-700">
+                          <span className="text-[#54ab91] px-2 py-1 bg-white rounded-lg border border-[#54ab91]/20">#{unit.unitNumber}</span>
+                          <div className="flex items-center gap-1"><Bed size={14} className="text-slate-400" /> {unit.bedrooms}</div>
+                          <div className="flex items-center gap-1"><Bath size={14} className="text-slate-400" /> {unit.bathrooms}</div>
+                          <div className="flex items-center gap-1"><Banknote size={14} className="text-slate-400" /> {unit.rent} RWF</div>
+                        </div>
+                        <button type="button" onClick={() => removeUnit(index)} className="text-slate-300 hover:text-red-500 p-1">
+                          <X size={16} />
                         </button>
                       </div>
                     ))}
                   </div>
-                )}
-              </div>
+                </div>
+              </form>
+            </div>
 
-              {/* Submit Buttons */}
-              <div style={{ display: 'flex', gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
-                <button type="button" onClick={() => setShowModal(false)}
-                  style={{ flex: 1, padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', background: 'white', color: 'var(--gray-600)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)' }}
-                >
-                  Cancel
-                </button>
-                <button type="submit"
-                  style={{ flex: 1, padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--primary-purple)', color: 'white', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)' }}
-                >
-                  Create Property
-                </button>
-              </div>
-            </form>
+            {/* Modal Footer */}
+            <div className="p-8 border-t border-slate-50 flex gap-4 bg-slate-50/20">
+              <button onClick={() => setShowModal(false)}
+                className="flex-1 py-4 text-sm font-bold text-slate-400 hover:text-slate-900 transition-colors"
+              >
+                Cancel
+              </button>
+              <button onClick={handleSubmit} style={{ backgroundColor: brandColor }}
+                className="flex-1 py-4 text-sm font-bold text-white rounded-2xl active:scale-95 transition-transform shadow-lg shadow-[#54ab91]/20"
+              >
+                Create Property
+              </button>
+            </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f1f5f9; border-radius: 10px; }
+      `}</style>
     </div>
   );
 }

@@ -1,9 +1,29 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getTenants, deleteTenant } from '../../services/tenantService';
+import { 
+  Users, 
+  Search, 
+  MapPin, 
+  MoreVertical, 
+  Trash2, 
+  Mail, 
+  Building, 
+  Hash,
+  Loader2,
+  Filter
+} from 'lucide-react';
+
+/**
+ * Urugo Rental - Modern Renters (Tenants) Management
+ * Features: Responsive Table, Flat Design, Brand Color #54ab91
+ */
 
 function Renters() {
   const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const brandColor = '#54ab91';
 
   useEffect(() => {
     fetchTenants();
@@ -12,7 +32,7 @@ function Renters() {
   const fetchTenants = async () => {
     try {
       const data = await getTenants();
-      setTenants(data.tenants);
+      setTenants(data.tenants || []);
     } catch (err) {
       console.error(err);
     } finally {
@@ -21,7 +41,7 @@ function Renters() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to remove this tenant?')) {
+    if (window.confirm('Are you sure you want to remove this tenant? This will vacate the unit.')) {
       try {
         await deleteTenant(id);
         fetchTenants();
@@ -31,150 +51,146 @@ function Renters() {
     }
   };
 
+  const filteredTenants = tenants.filter(t => 
+    t.userId?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.userId?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.propertyId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--gray-500)' }}>Loading...</div>;
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="animate-spin text-[#54ab91]" size={40} />
+      </div>
+    );
   }
 
   return (
-    <div>
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 'var(--space-lg)'
-      }}>
-        <h2 style={{ fontSize: 'var(--font-size-2xl)', color: 'var(--primary-purple)' }}>
-          Renters
-        </h2>
+    <div className="pt-20 lg:pt-8 px-4 sm:px-8 pb-8 max-w-7xl mx-auto space-y-8 font-sans">
+      
+      {/* Header & Search */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Renters</h2>
+          <p className="text-sm text-slate-500 font-medium uppercase tracking-widest mt-1">
+            Manage your tenant community
+          </p>
+        </div>
+
+        <div className="relative w-full md:w-72 group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#54ab91] transition-colors" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search tenants..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:border-[#54ab91] focus:ring-4 focus:ring-[#54ab91]/5 transition-all text-sm font-medium"
+          />
+        </div>
       </div>
 
-      {/* Renters List */}
+      {/* Renters Content */}
       {tenants.length === 0 ? (
-        <div style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-3xl)',
-          textAlign: 'center',
-          border: '1px solid var(--gray-200)',
-          boxShadow: 'var(--shadow-sm)'
-        }}>
-          <p style={{ fontSize: 'var(--font-size-4xl)', marginBottom: 'var(--space-md)' }}>👥</p>
-          <p style={{ color: 'var(--gray-500)', marginBottom: 'var(--space-md)' }}>
-            No renters yet
-          </p>
-          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-400)' }}>
-            Assign tenants to units to see them here
+        <div className="bg-white border-2 border-dashed border-slate-200 rounded-[2.5rem] p-20 text-center">
+          <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-slate-300">
+            <Users size={40} />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900 mb-2">No renters yet</h3>
+          <p className="text-slate-500 max-w-xs mx-auto text-sm leading-relaxed">
+            Tenants will appear here once you assign them to units in the Properties section.
           </p>
         </div>
       ) : (
-        <div style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
-          boxShadow: 'var(--shadow-sm)',
-          border: '1px solid var(--gray-200)',
-          overflow: 'hidden'
-        }}>
-          {/* Table Header */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '2fr 2fr 2fr 1fr 1fr 100px',
-            gap: 'var(--space-md)',
-            padding: 'var(--space-md) var(--space-lg)',
-            background: 'var(--gray-50)',
-            borderBottom: '1px solid var(--gray-200)',
-            fontSize: 'var(--font-size-xs)',
-            fontWeight: 'var(--font-weight-semibold)',
-            color: 'var(--gray-600)',
-            textTransform: 'uppercase'
-          }}>
-            <div>Tenant</div>
-            <div>Property</div>
-            <div>Unit</div>
-            <div>Rent</div>
-            <div>Status</div>
-            <div>Actions</div>
+        <div className="bg-white border border-slate-100 rounded-[2rem] overflow-hidden shadow-none">
+          {/* Desktop Table Header */}
+          <div className="hidden md:grid grid-cols-12 gap-4 px-8 py-5 bg-slate-50/50 border-b border-slate-100 text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
+            <div className="col-span-4">Tenant Info</div>
+            <div className="col-span-3">Property & Unit</div>
+            <div className="col-span-2 text-center">Rent</div>
+            <div className="col-span-2 text-center">Status</div>
+            <div className="col-span-1 text-right">Actions</div>
           </div>
 
-          {/* Table Body */}
-          {tenants.map((tenant) => (
-            <div key={tenant._id} style={{
-              display: 'grid',
-              gridTemplateColumns: '2fr 2fr 2fr 1fr 1fr 100px',
-              gap: 'var(--space-md)',
-              padding: 'var(--space-md) var(--space-lg)',
-              borderBottom: '1px solid var(--gray-100)',
-              alignItems: 'center'
-            }}>
-              {/* Tenant Info */}
-              <div>
-                <p style={{ fontWeight: 'var(--font-weight-semibold)', color: 'var(--gray-900)', fontSize: 'var(--font-size-sm)' }}>
-                  {tenant.userId?.firstName} {tenant.userId?.lastName}
-                </p>
-                <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-xs)' }}>
-                  {tenant.userId?.email}
-                </p>
-              </div>
+          {/* List Items */}
+          <div className="divide-y divide-slate-50">
+            {filteredTenants.map((tenant) => (
+              <div 
+                key={tenant._id} 
+                className="grid grid-cols-1 md:grid-cols-12 gap-4 px-8 py-6 items-center hover:bg-slate-50/30 transition-colors"
+              >
+                {/* Tenant Info */}
+                <div className="col-span-1 md:col-span-4 flex items-center gap-4">
+                  <div 
+                    className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-xs shrink-0"
+                    style={{ backgroundColor: brandColor }}
+                  >
+                    {tenant.userId?.firstName?.charAt(0)}{tenant.userId?.lastName?.charAt(0)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-bold text-slate-900 truncate">
+                      {tenant.userId?.firstName} {tenant.userId?.lastName}
+                    </p>
+                    <div className="flex items-center gap-1.5 text-slate-400 text-xs mt-0.5">
+                      <Mail size={12} />
+                      <span className="truncate">{tenant.userId?.email}</span>
+                    </div>
+                  </div>
+                </div>
 
-              {/* Property */}
-              <div>
-                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-700)' }}>
-                  {tenant.propertyId?.name || 'N/A'}
-                </p>
-                <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)' }}>
-                  {tenant.propertyId?.address?.city}
-                </p>
-              </div>
+                {/* Property & Unit */}
+                <div className="col-span-1 md:col-span-3">
+                  <div className="flex items-center gap-1.5 text-slate-700 font-bold text-sm">
+                    <Building size={14} className="text-slate-400" />
+                    <span className="truncate">{tenant.propertyId?.name || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-slate-400 text-xs mt-1">
+                    <Hash size={14} />
+                    <span>Unit {tenant.unitId || 'N/A'}</span>
+                  </div>
+                </div>
 
-              {/* Unit */}
-              <div>
-                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-700)' }}>
-                  Unit {tenant.unitId || 'N/A'}
-                </p>
-              </div>
+                {/* Rent (Mobile-friendly layout) */}
+                <div className="col-span-1 md:col-span-2 text-left md:text-center">
+                  <p className="text-sm font-black text-slate-900">
+                    {Number(tenant.rentAmount).toLocaleString()} RWF
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Monthly</p>
+                </div>
 
-              {/* Rent */}
-              <div>
-                <p style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: 'var(--primary-purple)' }}>
-                  ${tenant.rentAmount}
-                </p>
-              </div>
+                {/* Status */}
+                <div className="col-span-1 md:col-span-2 flex md:justify-center">
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                    tenant.status === 'active' 
+                      ? 'bg-emerald-50 text-emerald-600' 
+                      : 'bg-amber-50 text-amber-600'
+                  }`}>
+                    {tenant.status}
+                  </span>
+                </div>
 
-              {/* Status */}
-              <div>
-                <span style={{
-                  display: 'inline-block',
-                  padding: 'var(--space-xs) var(--space-sm)',
-                  borderRadius: 'var(--radius-full)',
-                  fontSize: 'var(--font-size-xs)',
-                  fontWeight: 'var(--font-weight-semibold)',
-                  textTransform: 'capitalize',
-                  background: tenant.status === 'active' ? '#ECFDF5' : '#FEF3C7',
-                  color: tenant.status === 'active' ? 'var(--success-green)' : 'var(--warning-yellow-dark)'
-                }}>
-                  {tenant.status}
-                </span>
+                {/* Actions */}
+                <div className="col-span-1 md:col-span-1 flex justify-end">
+                  <button 
+                    onClick={() => handleDelete(tenant._id)}
+                    className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    title="Remove Tenant"
+                  >
+                    <Trash2 size={20} />
+                  </button>
+                </div>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
-                <button
-                  onClick={() => handleDelete(tenant._id)}
-                  style={{
-                    padding: 'var(--space-xs) var(--space-sm)',
-                    borderRadius: 'var(--radius-md)',
-                    border: '1px solid var(--error-red)',
-                    background: 'transparent',
-                    color: 'var(--error-red)',
-                    cursor: 'pointer',
-                    fontSize: 'var(--font-size-xs)'
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
-          ))}
+      {/* Footer Insight */}
+      {!loading && tenants.length > 0 && (
+        <div className="flex items-center justify-center gap-3 p-6 bg-slate-50 rounded-[2rem] border border-slate-100">
+          <Filter size={16} className="text-slate-400" />
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
+            Showing {filteredTenants.length} total renters
+          </p>
         </div>
       )}
     </div>

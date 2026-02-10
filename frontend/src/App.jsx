@@ -10,6 +10,7 @@ import PropertyDetails from './pages/landlord/PropertyDetails';
 import Renters from './pages/landlord/Renters';
 import Transactions from './pages/landlord/Transactions';
 import TenantHome from './pages/tenant/Home';
+import LandingPage from './pages/LandingPage';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useAuth();
@@ -37,7 +38,7 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
+          <Route path="/" element={<LandingPage/>} />
 
           <Route path="/login" element={
             <RedirectIfAuth>

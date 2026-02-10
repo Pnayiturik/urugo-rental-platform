@@ -1,7 +1,27 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPropertyById } from '../../services/propertyService';
 import { createTenant } from '../../services/tenantService';
+import { 
+  ArrowLeft, 
+  MapPin, 
+  Building2, 
+  UserPlus, 
+  Users, 
+  Home as HomeIcon, 
+  CheckCircle2, 
+  X, 
+  Mail, 
+  Phone, 
+  Calendar,
+  Loader2,
+  Info
+} from 'lucide-react';
+
+/**
+ * Urugo Rental - Modern Property Details & Tenant Assignment
+ * Features: Tailwind CSS, Responsive Grids, Brand Color #54ab91
+ */
 
 function PropertyDetails() {
   const { id } = useParams();
@@ -17,13 +37,11 @@ function PropertyDetails() {
     phone: '',
     leaseStart: '',
     leaseEnd: '',
-    emergencyContact: {
-      name: '',
-      phone: '',
-      relationship: ''
-    }
+    emergencyContact: { name: '', phone: '', relationship: '' }
   });
   const [error, setError] = useState('');
+
+  const brandColor = '#54ab91';
 
   useEffect(() => {
     fetchProperty();
@@ -74,19 +92,13 @@ function PropertyDetails() {
 
     try {
       const response = await createTenant({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        phone: formData.phone,
+        ...formData,
         propertyId: property._id,
         unitId: selectedUnit._id,
-        leaseStart: formData.leaseStart,
-        leaseEnd: formData.leaseEnd,
         rentAmount: selectedUnit.rent,
-        emergencyContact: formData.emergencyContact
       });
 
-      alert(`Tenant created! Temporary password: ${response.tempPassword}\n\nThis will be sent via email.`);
+      alert(`Tenant created! Temporary password: ${response.tempPassword}\n\nLogin details have been emailed to the tenant.`);
       setShowModal(false);
       fetchProperty();
     } catch (err) {
@@ -94,236 +106,108 @@ function PropertyDetails() {
     }
   };
 
-  if (loading) {
-    return <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--gray-500)' }}>Loading...</div>;
-  }
+  if (loading) return (
+    <div className="flex h-screen items-center justify-center">
+      <Loader2 className="animate-spin text-[#54ab91]" size={40} />
+    </div>
+  );
 
-  if (!property) {
-    return <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--gray-500)' }}>Property not found</div>;
-  }
+  if (!property) return <div className="p-20 text-center text-slate-500 font-bold">Property not found</div>;
 
   const occupiedUnits = property.units.filter(u => u.status === 'occupied').length;
   const vacantUnits = property.units.filter(u => u.status === 'vacant').length;
   const occupancyRate = property.units.length > 0 ? Math.round((occupiedUnits / property.units.length) * 100) : 0;
 
   return (
-    <div>
-      {/* Header */}
-      <div style={{ marginBottom: 'var(--space-xl)' }}>
+    <div className="pt-20 lg:pt-8 px-4 sm:px-8 pb-8 max-w-7xl mx-auto space-y-8 font-sans">
+      
+      {/* Header Section */}
+      <div className="space-y-6">
         <button
           onClick={() => navigate('/landlord/properties')}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--primary-purple)',
-            fontSize: 'var(--font-size-sm)',
-            cursor: 'pointer',
-            marginBottom: 'var(--space-md)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--space-xs)'
-          }}
+          className="flex items-center gap-2 text-[#54ab91] font-bold text-sm hover:translate-x-[-4px] transition-transform"
         >
-          ← Back to Properties
+          <ArrowLeft size={18} /> Back to Properties
         </button>
 
-        <div style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-xl)',
-          boxShadow: 'var(--shadow-sm)',
-          border: '1px solid var(--gray-200)'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <h2 style={{ fontSize: 'var(--font-size-3xl)', color: 'var(--gray-900)', marginBottom: 'var(--space-xs)' }}>
-                {property.name}
-              </h2>
-              <p style={{ color: 'var(--gray-500)', fontSize: 'var(--font-size-base)' }}>
-                📍 {property.address.street}, {property.address.city}
-                {property.address.district && `, ${property.address.district}`}
-              </p>
+        <div className="bg-white border border-slate-100 p-8 rounded-[2.5rem] flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="space-y-2">
+            <h2 className="text-4xl font-black text-slate-900 tracking-tight">{property.name}</h2>
+            <div className="flex items-center gap-2 text-slate-400 font-medium">
+              <MapPin size={18} />
+              <span>{property.address.street}, {property.address.city}</span>
             </div>
-            <span style={{
-              background: 'var(--primary-purple)',
-              color: 'white',
-              padding: 'var(--space-xs) var(--space-md)',
-              borderRadius: 'var(--radius-full)',
-              fontSize: 'var(--font-size-sm)',
-              fontWeight: 'var(--font-weight-semibold)',
-              textTransform: 'capitalize'
-            }}>
-              {property.propertyType}
-            </span>
+          </div>
+          <div className="px-6 py-2 bg-[#54ab91] text-white rounded-full text-xs font-black uppercase tracking-widest">
+            {property.propertyType}
           </div>
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(4, 1fr)',
-        gap: 'var(--space-lg)',
-        marginBottom: 'var(--space-xl)'
-      }}>
-        <div style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-lg)',
-          boxShadow: 'var(--shadow-sm)',
-          border: '1px solid var(--gray-200)'
-        }}>
-          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-500)', marginBottom: 'var(--space-xs)' }}>
-            Total Units
-          </p>
-          <p style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--primary-purple)' }}>
-            {property.units.length}
-          </p>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-lg)',
-          boxShadow: 'var(--shadow-sm)',
-          border: '1px solid var(--gray-200)'
-        }}>
-          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-500)', marginBottom: 'var(--space-xs)' }}>
-            Occupied
-          </p>
-          <p style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--success-green)' }}>
-            {occupiedUnits}
-          </p>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-lg)',
-          boxShadow: 'var(--shadow-sm)',
-          border: '1px solid var(--gray-200)'
-        }}>
-          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-500)', marginBottom: 'var(--space-xs)' }}>
-            Vacant
-          </p>
-          <p style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--warning-yellow-dark)' }}>
-            {vacantUnits}
-          </p>
-        </div>
-
-        <div style={{
-          background: 'white',
-          borderRadius: 'var(--radius-lg)',
-          padding: 'var(--space-lg)',
-          boxShadow: 'var(--shadow-sm)',
-          border: '1px solid var(--gray-200)'
-        }}>
-          <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-500)', marginBottom: 'var(--space-xs)' }}>
-            Occupancy Rate
-          </p>
-          <p style={{ fontSize: 'var(--font-size-3xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--info-blue)' }}>
-            {occupancyRate}%
-          </p>
-        </div>
+      {/* Stats Dashboard */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Units', value: property.units.length, color: 'text-slate-900', icon: <Building2 size={20} /> },
+          { label: 'Occupied', value: occupiedUnits, color: 'text-emerald-500', icon: <CheckCircle2 size={20} /> },
+          { label: 'Vacant', value: vacantUnits, color: 'text-amber-500', icon: <HomeIcon size={20} /> },
+          { label: 'Occupancy', value: `${occupancyRate}%`, color: 'text-[#54ab91]', icon: <Users size={20} /> }
+        ].map((stat, i) => (
+          <div key={i} className="bg-white border border-slate-100 p-6 rounded-3xl">
+            <div className="p-2 w-fit rounded-xl bg-slate-50 text-slate-400 mb-4">{stat.icon}</div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{stat.label}</p>
+            <h3 className={`text-3xl font-black mt-1 ${stat.color}`}>{stat.value}</h3>
+          </div>
+        ))}
       </div>
 
-      {/* Units List */}
-      <div style={{
-        background: 'white',
-        borderRadius: 'var(--radius-lg)',
-        padding: 'var(--space-xl)',
-        boxShadow: 'var(--shadow-sm)',
-        border: '1px solid var(--gray-200)'
-      }}>
-        <h3 style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--space-lg)', color: 'var(--gray-900)' }}>
-          Units
-        </h3>
-
+      {/* Units Management */}
+      <div className="bg-white border border-slate-100 p-6 lg:p-10 rounded-[2.5rem]">
+        <h3 className="text-2xl font-black text-slate-900 mb-8">Units Management</h3>
+        
         {property.units.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 'var(--space-3xl)', color: 'var(--gray-400)' }}>
-            <p style={{ fontSize: 'var(--font-size-xl)', marginBottom: 'var(--space-sm)' }}>📭</p>
-            <p>No units added yet</p>
+          <div className="py-20 text-center border-2 border-dashed border-slate-100 rounded-3xl text-slate-400 font-medium">
+            No units found for this property.
           </div>
         ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 'var(--space-lg)'
-          }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {property.units.map((unit, index) => (
-              <div key={index} style={{
-                border: '1px solid var(--gray-200)',
-                borderRadius: 'var(--radius-lg)',
-                padding: 'var(--space-lg)',
-                background: unit.status === 'occupied' ? 'var(--gray-50)' : 'white'
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--space-md)' }}>
+              <div 
+                key={index} 
+                className={`p-6 rounded-3xl border transition-all ${
+                  unit.status === 'occupied' 
+                  ? 'bg-slate-50 border-transparent opacity-80' 
+                  : 'bg-white border-slate-100 hover:border-[#54ab91]'
+                }`}
+              >
+                <div className="flex justify-between items-start mb-6">
                   <div>
-                    <p style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--gray-900)' }}>
-                      Unit {unit.unitNumber}
-                    </p>
-                    <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-500)' }}>
-                      {unit.bedrooms} BR • {unit.bathrooms} BA
+                    <h4 className="text-xl font-black text-slate-900 tracking-tight">Unit {unit.unitNumber}</h4>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
+                      {unit.bedrooms} BD • {unit.bathrooms} BA
                     </p>
                   </div>
-                  <span style={{
-                    padding: 'var(--space-xs) var(--space-sm)',
-                    borderRadius: 'var(--radius-full)',
-                    fontSize: 'var(--font-size-xs)',
-                    fontWeight: 'var(--font-weight-semibold)',
-                    background: unit.status === 'occupied' ? '#ECFDF5' : '#FEF3C7',
-                    color: unit.status === 'occupied' ? 'var(--success-green)' : 'var(--warning-yellow-dark)',
-                    textTransform: 'capitalize'
-                  }}>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter ${
+                    unit.status === 'occupied' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+                  }`}>
                     {unit.status}
                   </span>
                 </div>
 
-                <div style={{ marginBottom: 'var(--space-md)' }}>
-                  <p style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--primary-purple)' }}>
-                    ${unit.rent}
-                    <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-normal)', color: 'var(--gray-500)' }}>
-                      /month
-                    </span>
-                  </p>
+                <div className="mb-6">
+                  <span className="text-2xl font-black text-slate-900">{unit.rent.toLocaleString()} RWF</span>
+                  <span className="text-slate-400 text-sm font-bold ml-1">/ mo</span>
                 </div>
 
-                {unit.status === 'vacant' && (
-                  <button
-                    onClick={() => handleAssignClick(unit)}
-                    style={{
-                      width: '100%',
-                      padding: 'var(--space-sm)',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--primary-purple)',
-                      background: 'transparent',
-                      color: 'var(--primary-purple)',
-                      cursor: 'pointer',
-                      fontSize: 'var(--font-size-sm)',
-                      fontWeight: 'var(--font-weight-semibold)'
-                    }}
-                  >
-                    Assign Tenant
-                  </button>
-                )}
-
-                {unit.status === 'occupied' && (
-                  <button
-                    style={{
-                      width: '100%',
-                      padding: 'var(--space-sm)',
-                      borderRadius: 'var(--radius-md)',
-                      border: '1px solid var(--gray-300)',
-                      background: 'white',
-                      color: 'var(--gray-700)',
-                      cursor: 'pointer',
-                      fontSize: 'var(--font-size-sm)',
-                      fontWeight: 'var(--font-weight-semibold)'
-                    }}
-                  >
-                    View Tenant
-                  </button>
-                )}
+                <button
+                  onClick={() => unit.status === 'vacant' ? handleAssignClick(unit) : null}
+                  className={`w-full py-4 rounded-2xl text-sm font-bold transition-all ${
+                    unit.status === 'vacant'
+                    ? 'bg-[#54ab91] text-white hover:brightness-95 active:scale-95'
+                    : 'bg-white border border-slate-200 text-slate-400 cursor-default'
+                  }`}
+                >
+                  {unit.status === 'vacant' ? 'Assign Tenant' : 'View Lease'}
+                </button>
               </div>
             ))}
           </div>
@@ -331,152 +215,79 @@ function PropertyDetails() {
       </div>
 
       {/* Assign Tenant Modal */}
-      {showModal && selectedUnit && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 'var(--z-modal)',
-          padding: 'var(--space-lg)'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: 'var(--radius-xl)',
-            width: '100%',
-            maxWidth: '500px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            padding: 'var(--space-xl)'
-          }}>
-            {/* Modal Header */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+      {showModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-[2.5rem] w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center">
               <div>
-                <h3 style={{ fontSize: 'var(--font-size-xl)', color: 'var(--gray-900)' }}>Create & Invite Tenant</h3>
-                <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--gray-500)', marginTop: 'var(--space-xs)' }}>
-                  Unit {selectedUnit.unitNumber} • ${selectedUnit.rent}/mo
-                </p>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tight">Assign Tenant</h3>
+                <p className="text-xs font-bold text-[#54ab91] uppercase tracking-widest mt-1">Unit {selectedUnit?.unitNumber} • {selectedUnit?.rent} RWF</p>
               </div>
-              <button onClick={() => setShowModal(false)} style={{ fontSize: 'var(--font-size-xl)', color: 'var(--gray-500)', background: 'none', border: 'none', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-900 transition-colors">
+                <X size={24} />
+              </button>
             </div>
 
-            {error && (
-              <div style={{
-                background: '#FEF2F2',
-                border: '1px solid var(--error-red)',
-                color: 'var(--error-red)',
-                padding: 'var(--space-sm) var(--space-md)',
-                borderRadius: 'var(--radius-md)',
-                marginBottom: 'var(--space-md)',
-                fontSize: 'var(--font-size-sm)'
-              }}>
-                {error}
-              </div>
-            )}
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {error && <div className="p-4 bg-red-50 border border-red-100 text-red-600 rounded-xl text-xs font-bold">{error}</div>}
 
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
-              {/* Tenant Name */}
-              <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>
-                    First Name
-                  </label>
-                  <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="John" required
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                  />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">First Name</label>
+                    <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} placeholder="John" required
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] text-sm font-medium transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Last Name</label>
+                    <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Doe" required
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] text-sm font-medium transition-all" />
+                  </div>
                 </div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>
-                    Last Name
-                  </label>
-                  <input type="text" name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Doe" required
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                  />
-                </div>
-              </div>
 
-              {/* Email & Phone */}
-              <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>
-                    Email Address
-                  </label>
-                  <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="john@email.com" required
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                  />
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Email</label>
+                  <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="tenant@urugo.rw" required
+                    className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] text-sm font-medium transition-all" />
                 </div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>
-                    Phone Number
-                  </label>
-                  <input type="text" name="phone" value={formData.phone} onChange={handleChange} placeholder="+250 700 000 000"
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                  />
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Lease Start</label>
+                    <input type="date" name="leaseStart" value={formData.leaseStart} onChange={handleChange} required
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] text-sm font-medium transition-all" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-1">Lease End</label>
+                    <input type="date" name="leaseEnd" value={formData.leaseEnd} onChange={handleChange} required
+                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:border-[#54ab91] text-sm font-medium transition-all" />
+                  </div>
                 </div>
-              </div>
 
-              {/* Lease Dates */}
-              <div style={{ display: 'flex', gap: 'var(--space-md)' }}>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>
-                    Lease Start
-                  </label>
-                  <input type="date" name="leaseStart" value={formData.leaseStart} onChange={handleChange} required
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                  />
+                <div className="p-4 bg-amber-50 rounded-2xl flex items-start gap-3">
+                  <Info size={18} className="text-amber-600 mt-1 shrink-0" />
+                  <p className="text-[11px] font-bold text-amber-700 leading-relaxed uppercase tracking-tighter">
+                    Assigning a tenant will auto-generate an account and send login instructions via email.
+                  </p>
                 </div>
-                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 'var(--space-xs)' }}>
-                  <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)' }}>
-                    Lease End
-                  </label>
-                  <input type="date" name="leaseEnd" value={formData.leaseEnd} onChange={handleChange} required
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-base)' }}
-                  />
-                </div>
-              </div>
 
-              {/* Emergency Contact */}
-              <div style={{ borderTop: '1px solid var(--gray-200)', paddingTop: 'var(--space-md)', marginTop: 'var(--space-sm)' }}>
-                <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', color: 'var(--gray-700)', marginBottom: 'var(--space-sm)', display: 'block' }}>
-                  Emergency Contact (Optional)
-                </label>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
-                  <input type="text" name="emergencyContact.name" value={formData.emergencyContact.name} onChange={handleChange} placeholder="Name"
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-sm)' }}
-                  />
-                  <input type="text" name="emergencyContact.phone" value={formData.emergencyContact.phone} onChange={handleChange} placeholder="Phone"
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-sm)' }}
-                  />
-                  <input type="text" name="emergencyContact.relationship" value={formData.emergencyContact.relationship} onChange={handleChange} placeholder="Relationship"
-                    style={{ padding: 'var(--space-sm) var(--space-md)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', fontSize: 'var(--font-size-sm)' }}
-                  />
-                </div>
-              </div>
-
-              <p style={{ fontSize: 'var(--font-size-xs)', color: 'var(--gray-500)', background: '#FEF3C7', padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)' }}>
-                ℹ️ A temporary password will be generated and sent to the tenant via email
-              </p>
-
-              {/* Submit Buttons */}
-              <div style={{ display: 'flex', gap: 'var(--space-md)', marginTop: 'var(--space-md)' }}>
-                <button type="button" onClick={() => setShowModal(false)}
-                  style={{ flex: 1, padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-300)', background: 'white', color: 'var(--gray-600)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)' }}
+                <button 
+                  type="submit" 
+                  style={{ backgroundColor: brandColor }}
+                  className="w-full py-4 text-white font-black rounded-2xl active:scale-95 transition-all uppercase tracking-widest text-sm shadow-xl shadow-[#54ab91]/20"
                 >
-                  Cancel
+                  Create & Send Invite
                 </button>
-                <button type="submit"
-                  style={{ flex: 1, padding: 'var(--space-sm)', borderRadius: 'var(--radius-md)', border: 'none', background: 'var(--primary-purple)', color: 'white', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)' }}
-                >
-                  Create & Invite Tenant
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #f1f5f9; border-radius: 10px; }
+      `}</style>
     </div>
   );
 }

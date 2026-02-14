@@ -1,7 +1,7 @@
 # Urugo Rental Management Platform
 
 *GitHub Repository(https://github.com/Pnayiturik/urugo-rental-platform)*
-*video https://youtu.be/6iItiABk5AY*
+*video https://drive.google.com/file/d/1lfzvODwpj78qkwLiALveK9FvmnmLdRsj/view?usp=drive_link*
 
 
 A web-based rental property management system designed for landlords and tenants in Rwanda. The platform streamlines property management, tenant tracking, and rent payment processing.

@@ -1,6 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getProperties, createProperty, getPropertyById, updateProperty, deleteProperty } = require('../controllers/propertyController');
+const { 
+  getProperties, 
+  createProperty, 
+  getPropertyById, 
+  updateProperty, 
+  deleteProperty 
+} = require('../controllers/propertyController');
 const { protect, landlordOnly } = require('../middleware/authMiddleware');
 
 router.get('/', protect, landlordOnly, getProperties);

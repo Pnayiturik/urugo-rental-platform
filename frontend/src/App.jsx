@@ -9,27 +9,24 @@ import Properties from './pages/landlord/Properties';
 import PropertyDetails from './pages/landlord/PropertyDetails';
 import Renters from './pages/landlord/Renters';
 import Transactions from './pages/landlord/Transactions';
+import Leases from './pages/landlord/Leases'; 
 import TenantHome from './pages/tenant/Home';
 import LandingPage from './pages/LandingPage';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useAuth();
-
   if (loading) return <div>Loading...</div>;
   if (!user) return <Navigate to="/login" />;
   if (role && user.role !== role) return <Navigate to="/" />;
-
   return children;
 };
 
 const RedirectIfAuth = ({ children }) => {
   const { user, loading } = useAuth();
-
   if (loading) return <div>Loading...</div>;
   if (user) {
     return <Navigate to={user.role === 'landlord' ? '/landlord' : '/tenant'} />;
   }
-
   return children;
 };
 
@@ -39,18 +36,8 @@ function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<LandingPage/>} />
-
-          <Route path="/login" element={
-            <RedirectIfAuth>
-              <Login />
-            </RedirectIfAuth>
-          } />
-
-          <Route path="/register" element={
-            <RedirectIfAuth>
-              <Register />
-            </RedirectIfAuth>
-          } />
+          <Route path="/login" element={<RedirectIfAuth><Login /></RedirectIfAuth>} />
+          <Route path="/register" element={<RedirectIfAuth><Register /></RedirectIfAuth>} />
 
           {/* Landlord Routes */}
           <Route path="/landlord" element={
@@ -63,6 +50,7 @@ function App() {
             <Route path="properties/:id" element={<PropertyDetails />} />
             <Route path="renters" element={<Renters />} />
             <Route path="transactions" element={<Transactions />} />
+            <Route path="leases" element={<Leases />} /> {/* 2. Added Lease Route */}
           </Route>
 
           {/* Tenant Routes */}

@@ -9,6 +9,8 @@ const authRoutes = require('./routes/authRoutes');
 const propertyRoutes = require('./routes/propertyRoutes');
 const tenantRoutes = require('./routes/tenantRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
+const leaseRoutes = require('./routes/leaseRoutes');
+const documentRoutes = require('./routes/documentRoutes');
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -37,5 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/tenants', tenantRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/leases', leaseRoutes);
+app.use('/api/documents', documentRoutes);
 
 module.exports = app;

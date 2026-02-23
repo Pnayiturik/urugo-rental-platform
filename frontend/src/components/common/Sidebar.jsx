@@ -9,6 +9,7 @@ import {
 const landlordLinks = [
   { name: 'Home', icon: Home, path: '/landlord' },
   { name: 'Properties', icon: Building2, path: '/landlord/properties' },
+  { name: 'Leases', icon: FileText, path: '/landlord/leases' }, 
   { name: 'Renters', icon: Users, path: '/landlord/renters' },
   { name: 'Transactions', icon: Receipt, path: '/landlord/transactions' },
   { name: 'Documents', icon: FileText, path: '/landlord/documents' },
@@ -16,6 +17,7 @@ const landlordLinks = [
 
 const tenantLinks = [
   { name: 'Home', icon: Home, path: '/tenant' },
+  { name: 'My Lease', icon: FileText, path: '/tenant/lease' },
   { name: 'Transactions', icon: Receipt, path: '/tenant/transactions' },
   { name: 'Wallet', icon: Wallet, path: '/tenant/wallet' },
   { name: 'Documents', icon: FileText, path: '/tenant/documents' },

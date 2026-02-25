@@ -6,14 +6,14 @@ const { sendTenantInvitation } = require('../services/emailService');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
-const createLease = async (req, res) => {
+exports.createLease = async (req, res) => {
   try {
     const { 
       tenantEmail, tenantFirstName, tenantLastName, 
       propertyId, unitNumber, startDate, endDate, rentAmount 
     } = req.body;
 
-    // 1. Check if user exists, otherwise create a 'pending' tenant account
+    // 1. Manage Tenant Account
     let tenant = await User.findOne({ email: tenantEmail.toLowerCase() });
     const tempPassword = crypto.randomBytes(4).toString('hex');
 
@@ -25,12 +25,11 @@ const createLease = async (req, res) => {
         email: tenantEmail.toLowerCase(),
         password: hashedPassword,
         role: 'tenant',
-        isActive: true,
-        emailVerified: false
+        isActive: true
       });
     }
 
-    // 2. Create the Lease Record
+    // 2. Create Lease
     const lease = await Lease.create({
       landlordId: req.userId,
       tenantId: tenant._id,
@@ -41,33 +40,34 @@ const createLease = async (req, res) => {
       rentAmount
     });
 
-    // 3. Archive to Documents (For Landlord & Tenant)
+    // 3. Create Document Records (Case-sensitive 'Lease' for your Enum)
     await Document.create([
       {
         title: `Lease Agreement - ${unitNumber}`,
         type: 'Lease',
-        ownerId: req.userId, // Landlord copy
+        ownerId: req.userId,
         relatedId: lease._id
       },
       {
         title: `My Lease - ${unitNumber}`,
         type: 'Lease',
-        ownerId: tenant._id, // Tenant copy
+        ownerId: tenant._id,
         relatedId: lease._id
       }
     ]);
 
-    // 4. Update Property Unit Status
+    // 4. Update Property Status
     await Property.updateOne(
       { _id: propertyId, "units.unitNumber": unitNumber },
       { $set: { "units.$.status": "occupied" } }
     );
 
-    // 5. Send Branded Email Invitation
+    // 5. Send Email
+    const landlord = await User.findById(req.userId);
     await sendTenantInvitation({
       tenantEmail: tenant.email,
       tenantName: tenant.firstName,
-      landlordName: `${req.user?.firstName || 'Your Landlord'}`,
+      landlordName: landlord ? `${landlord.firstName} ${landlord.lastName}` : 'Your Landlord',
       propertyName: "Urugo Managed Property",
       unitNumber,
       rent: rentAmount,
@@ -81,7 +81,7 @@ const createLease = async (req, res) => {
   }
 };
 
-const getMyLeases = async (req, res) => {
+exports.getMyLeases = async (req, res) => {
   try {
     const leases = await Lease.find({ landlordId: req.userId })
       .populate('tenantId', 'firstName lastName email')
@@ -92,4 +92,15 @@ const getMyLeases = async (req, res) => {
   }
 };
 
-module.exports = { createLease, getMyLeases };
+exports.getTenantLease = async (req, res) => {
+  try {
+    const lease = await Lease.findOne({ tenantId: req.userId })
+      .populate('landlordId', 'firstName lastName email phone')
+      .populate('propertyId', 'name address');
+    
+    if (!lease) return res.status(404).json({ message: 'No lease found' });
+    res.status(200).json({ success: true, lease });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};

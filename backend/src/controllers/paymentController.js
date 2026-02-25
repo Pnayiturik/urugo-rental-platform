@@ -1,8 +1,12 @@
 const Payment = require('../models/Payment');
 const User = require('../models/User');
+const Lease = require('../models/Lease');
 const Document = require('../models/Document');
 const { initializeFlutterwavePayment, checkOverduePayments, generateMonthlyPayments } = require('../services/paymentService');
 const { sendLandlordNotification } = require('../services/emailService');
+const axios = require('axios');
+
+const PAYSTACK_SECRET_KEY = 'sk_test_3189873c8bbc0c6ca8d7a18d4cec82c9d0043544';
 
 /**
  * @desc    Get all payments for a Landlord
@@ -158,10 +162,105 @@ const getPaymentStats = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Verify Paystack Payment and Record Transaction
+ * @route   POST /api/payments/verify-paystack
+ */
+const verifyPaystackPayment = async (req, res) => {
+  try {
+    const { reference } = req.body;
+
+    if (!reference) {
+      return res.status(400).json({ success: false, message: 'Payment reference is required' });
+    }
+
+    // Verify payment with Paystack API
+    const response = await axios.get(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        headers: {
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`
+        }
+      }
+    );
+
+    const { data } = response.data;
+
+    if (data.status !== 'success') {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Payment verification failed' 
+      });
+    }
+
+    // Get lease information
+    const lease = await Lease.findOne({ tenantId: req.userId })
+      .populate('propertyId')
+      .populate('landlordId');
+
+    if (!lease) {
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No active lease found' 
+      });
+    }
+
+    // Create payment record
+    const payment = await Payment.create({
+      tenantId: req.userId,
+      landlordId: lease.landlordId._id,
+      propertyId: lease.propertyId._id,
+      amount: data.amount / 100, // Convert from kobo back to RWF
+      dueDate: new Date(),
+      paidDate: new Date(),
+      paymentMethod: data.channel,
+      transactionId: reference,
+      status: 'completed',
+      paymentFor: 'rent',
+      paymentMonth: new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+    });
+
+    // Generate receipt document
+    const document = await Document.create({
+      name: `Rent Receipt - ${payment.paymentMonth}`,
+      type: 'receipt',
+      url: `#receipt-${payment._id}`,
+      uploadedBy: req.userId,
+      ownerId: req.userId,
+      relatedTo: lease._id,
+      relatedModel: 'Lease'
+    });
+
+    // Send notification to landlord
+    if (lease.landlordId.email) {
+      await sendLandlordNotification(
+        lease.landlordId.email,
+        'New Rent Payment Received',
+        `Payment of ${payment.amount} RWF received from tenant for Unit ${lease.unitNumber}`
+      );
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Payment verified and recorded successfully',
+      payment,
+      document
+    });
+
+  } catch (error) {
+    console.error('Paystack verification error:', error.response?.data || error.message);
+    res.status(500).json({ 
+      success: false, 
+      message: error.response?.data?.message || error.message 
+    });
+  }
+};
+
 module.exports = {
   getPayments,
   getTenantPayments,
   processPayment,
   verifyPaymentStatus,
-  getPaymentStats
+  getPaymentStats,
+  verifyPaystackPayment
 };

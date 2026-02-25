@@ -1,9 +1,42 @@
 const Property = require('../models/Property');
+const Lease = require('../models/Lease');
 
 const getProperties = async (req, res) => {
   try {
     const properties = await Property.find({ landlordId: req.userId });
-    res.status(200).json({ success: true, properties });
+    
+    // For each property, fetch lease information to get tenant names
+    const propertiesWithTenants = await Promise.all(
+      properties.map(async (property) => {
+        const propertyObj = property.toObject();
+        
+        // Enhance each unit with tenant info
+        propertyObj.units = await Promise.all(
+          propertyObj.units.map(async (unit) => {
+            if (unit.status === 'occupied') {
+              const lease = await Lease.findOne({
+                propertyId: property._id,
+                unitNumber: unit.unitNumber,
+                status: 'active'
+              }).populate('tenantId', 'firstName lastName email');
+              
+              return {
+                ...unit,
+                tenant: lease?.tenantId ? {
+                  name: `${lease.tenantId.firstName} ${lease.tenantId.lastName}`,
+                  email: lease.tenantId.email
+                } : null
+              };
+            }
+            return unit;
+          })
+        );
+        
+        return propertyObj;
+      })
+    );
+    
+    res.status(200).json({ success: true, properties: propertiesWithTenants });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

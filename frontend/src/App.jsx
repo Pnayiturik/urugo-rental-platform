@@ -12,6 +12,9 @@ import Transactions from './pages/landlord/Transactions';
 import Leases from './pages/landlord/Leases'; 
 import TenantHome from './pages/tenant/Home';
 import LandingPage from './pages/LandingPage';
+import Documents from './pages/tenant/Documents';
+import TenantLease from './pages/tenant/TenantLease';
+import Wallet from './pages/tenant/Wallet';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useAuth();
@@ -50,7 +53,7 @@ function App() {
             <Route path="properties/:id" element={<PropertyDetails />} />
             <Route path="renters" element={<Renters />} />
             <Route path="transactions" element={<Transactions />} />
-            <Route path="leases" element={<Leases />} /> {/* 2. Added Lease Route */}
+            <Route path="leases" element={<Leases />} />
           </Route>
 
           {/* Tenant Routes */}
@@ -60,6 +63,9 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<TenantHome />} />
+            <Route path="documents" element={<Documents />} />
+            <Route path="lease" element={<TenantLease />} />
+            <Route path="wallet" element={<Wallet />} />
           </Route>
         </Routes>
       </AuthProvider>

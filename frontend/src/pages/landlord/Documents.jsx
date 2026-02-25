@@ -5,13 +5,11 @@ import { FileText, Download, Clock, ShieldCheck, Loader2 } from 'lucide-react';
 function Documents() {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const brandColor = '#54ab91';
 
   useEffect(() => {
     const fetchDocuments = async () => {
       try {
-        // This endpoint will fetch from the Document model we created
-        const response = await api.get('/auth/documents'); 
+        const response = await api.get('/documents'); 
         setDocuments(response.data.documents || []);
       } catch (err) {
         console.error("Failed to fetch documents", err);

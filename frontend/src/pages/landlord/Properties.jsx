@@ -84,8 +84,12 @@ function Properties() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData.units.length === 0) {
+      return alert('Please add at least one unit to the property');
+    }
     try {
       await createProperty(formData);
+      alert('Property created successfully!');
       setShowModal(false);
       setFormData({
         name: '',
@@ -95,7 +99,8 @@ function Properties() {
       });
       fetchProperties();
     } catch (err) {
-      console.error(err);
+      console.error('Property creation error:', err);
+      alert(`Failed to create property: ${err.response?.data?.message || err.message}`);
     }
   };
 
@@ -194,6 +199,24 @@ function Properties() {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Vacant</p>
                 </div>
               </div>
+
+              {/* Tenants List */}
+              {property.units.some(u => u.status === 'occupied' && u.tenant) && (
+                <div className="px-6 pb-4 border-b border-slate-50">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Current Tenants</p>
+                  <div className="space-y-2">
+                    {property.units
+                      .filter(u => u.status === 'occupied' && u.tenant)
+                      .map((unit, idx) => (
+                        <div key={idx} className="flex items-center justify-between text-sm">
+                          <span className="font-medium text-slate-600">Unit {unit.unitNumber}</span>
+                          <span className="font-bold text-slate-900">{unit.tenant.name}</span>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
 
               {/* Card Actions */}
               <div className="p-4 flex gap-2">

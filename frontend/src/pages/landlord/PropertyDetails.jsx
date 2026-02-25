@@ -198,6 +198,14 @@ function PropertyDetails() {
                   <span className="text-slate-400 text-sm font-bold ml-1">/ mo</span>
                 </div>
 
+                {unit.status === 'occupied' && unit.tenant && (
+                  <div className="mb-4 p-3 bg-emerald-50 rounded-xl">
+                    <p className="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-1">Tenant</p>
+                    <p className="text-sm font-bold text-slate-900">{unit.tenant.name}</p>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">{unit.tenant.email}</p>
+                  </div>
+                )}
+
                 <button
                   onClick={() => unit.status === 'vacant' ? handleAssignClick(unit) : null}
                   className={`w-full py-4 rounded-2xl text-sm font-bold transition-all ${
@@ -206,7 +214,7 @@ function PropertyDetails() {
                     : 'bg-white border border-slate-200 text-slate-400 cursor-default'
                   }`}
                 >
-                  {unit.status === 'vacant' ? 'Assign Tenant' : 'View Lease'}
+                  {unit.status === 'vacant' ? 'Assign Tenant' : 'Occupied'}
                 </button>
               </div>
             ))}

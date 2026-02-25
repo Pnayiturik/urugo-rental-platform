@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { createLease, getMyLeases } = require('../controllers/leaseController');
-const { protect } = require('../middleware/authMiddleware');
+const { createLease, getMyLeases, getTenantLease } = require('../controllers/leaseController');
+const { protect, landlordOnly, tenantOnly } = require('../middleware/authMiddleware');
 
-// Protect all lease routes
-router.use(protect);
+// Landlord routes
+router.post('/', protect, landlordOnly, createLease);
+router.get('/', protect, landlordOnly, getMyLeases);
 
-router.post('/', createLease);
-router.get('/', getMyLeases);
+// Tenant route
+router.get('/my-lease', protect, tenantOnly, getTenantLease);
 
 module.exports = router;

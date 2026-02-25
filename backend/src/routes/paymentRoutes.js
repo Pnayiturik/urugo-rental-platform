@@ -4,7 +4,8 @@ const {
   getPayments, 
   getTenantPayments,
   processPayment,
-  getPaymentStats
+  getPaymentStats,
+  verifyPaystackPayment
 } = require('../controllers/paymentController');
 const { protect, landlordOnly, tenantOnly } = require('../middleware/authMiddleware');
 
@@ -13,5 +14,6 @@ router.get('/landlord/stats', protect, landlordOnly, getPaymentStats);
 
 router.get('/tenant', protect, tenantOnly, getTenantPayments);
 router.post('/tenant/pay', protect, tenantOnly, processPayment);
+router.post('/verify-paystack', protect, tenantOnly, verifyPaystackPayment);
 
 module.exports = router;

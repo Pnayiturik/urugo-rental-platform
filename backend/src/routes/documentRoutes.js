@@ -3,8 +3,8 @@ const router = express.Router();
 const { protect, landlordOnly } = require('../middleware/authMiddleware');
 const Document = require('../models/Document');
 
-// Get all documents for the logged-in landlord
-router.get('/', protect, landlordOnly, async (req, res) => {
+// Get all documents for the logged-in user (landlord or tenant)
+router.get('/', protect, async (req, res) => {
   try {
     const documents = await Document.find({ ownerId: req.userId }).sort({ createdAt: -1 });
     res.json({ success: true, documents });
@@ -14,7 +14,7 @@ router.get('/', protect, landlordOnly, async (req, res) => {
 });
 
 // Get a single document by ID
-router.get('/:id', protect, landlordOnly, async (req, res) => {
+router.get('/:id', protect, async (req, res) => {
   try {
     const document = await Document.findOne({
       _id: req.params.id,

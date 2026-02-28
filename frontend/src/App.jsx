@@ -15,6 +15,7 @@ import LandingPage from './pages/LandingPage';
 import Documents from './pages/tenant/Documents';
 import TenantLease from './pages/tenant/TenantLease';
 import Wallet from './pages/tenant/Wallet';
+import TenantTransactions from './pages/tenant/Transactions';
 
 const ProtectedRoute = ({ children, role }) => {
   const { user, loading } = useAuth();
@@ -66,6 +67,7 @@ function App() {
             <Route path="documents" element={<Documents />} />
             <Route path="lease" element={<TenantLease />} />
             <Route path="wallet" element={<Wallet />} />
+            <Route path="transactions" element={<TenantTransactions />} />
           </Route>
         </Routes>
       </AuthProvider>

@@ -212,7 +212,7 @@ function Home() {
 
       {/* Payment Modal */}
       {showModal && selectedPayment && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white rounded-[2.5rem] w-full max-w-lg overflow-hidden border border-slate-100">
             <div className="p-8 border-b border-slate-100 flex justify-between items-center">
               <h3 className="text-2xl font-black text-slate-900 tracking-tight">Confirm Payment</h3>
@@ -234,7 +234,7 @@ function Home() {
                     <span className="text-red-600 font-black">+{selectedPayment.penaltyAmount.toLocaleString()} RWF</span>
                   </div>
                 )}
-                <div className="h-[1px] bg-slate-200 pt-2" />
+                <div className="h-px bg-slate-200 pt-2" />
                 <div className="flex justify-between items-center">
                   <span className="text-slate-900 font-black uppercase tracking-widest text-xs">Total Amount</span>
                   <span className="text-2xl font-black text-[#54ab91]">

@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const paymentSchema = new mongoose.Schema({
   tenantId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Tenant',
+    ref: 'User',
     required: true
   },
   landlordId: {
@@ -29,7 +29,7 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['mtn_mobile_money', 'airtel_money'],
+    enum: ['mtn_mobile_money', 'airtel_money', 'stripe', 'card', 'mobile_money'],
     sparse: true
   },
   phoneNumber: {
@@ -42,7 +42,7 @@ const paymentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'completed', 'overdue'],
+    enum: ['pending', 'completed', 'overdue', 'failed'],
     default: 'pending'
   },
   paymentFor: {
@@ -56,6 +56,9 @@ const paymentSchema = new mongoose.Schema({
   penaltyAmount: {
     type: Number,
     default: 0
+  },
+  receiptUrl: {
+    type: String
   }
 }, {
   timestamps: true

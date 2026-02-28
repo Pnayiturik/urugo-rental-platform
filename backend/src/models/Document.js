@@ -1,11 +1,20 @@
 const mongoose = require('mongoose');
 
 const documentSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  type: { type: String, enum: ['Lease', 'Receipt', 'IncomeStatement'], required: true },
+  name: { type: String },
+  title: { type: String },
+  type: { 
+    type: String, 
+    enum: ['Lease', 'Receipt', 'IncomeStatement', 'lease', 'receipt', 'contract', 'other'], 
+    required: true 
+  },
   ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  relatedId: { type: mongoose.Schema.Types.ObjectId }, 
-  fileUrl: { type: String }, // Optional: for future PDF integration
+  uploadedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  relatedId: { type: mongoose.Schema.Types.ObjectId },
+  relatedTo: { type: mongoose.Schema.Types.ObjectId },
+  relatedModel: { type: String, enum: ['Lease', 'Property', 'Payment'] },
+  fileUrl: { type: String },
+  url: { type: String },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Document', documentSchema);

@@ -11,11 +11,22 @@ const Wallet = () => {
   const [processing, setProcessing] = useState(false);
   const [gateway, setGateway] = useState('stripe'); // stripe | flutterwave
 
+  const getAuthToken = () => {
+    const raw = localStorage.getItem('userInfo');
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed?.firstLoginToken || parsed?.token || parsed?.accessToken || parsed?.user?.token || localStorage.getItem('token') || '';
+  };
+
+  const authConfig = () => {
+    const token = getAuthToken();
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+  };
+
   useEffect(() => {
     const fetchLeaseData = async () => {
       try {
         console.log('Fetching lease data...');
-        const res = await api.get('/leases/my-lease');
+        const res = await api.get('/leases/my-lease', authConfig());
         console.log('Lease API response:', res.data);
         setLease(res.data.lease);
         if (res.data.lease) {
@@ -64,7 +75,7 @@ const Wallet = () => {
 
   const verifyPayment = async (sessionId) => {
     try {
-      const res = await api.get(`/payments/verify-stripe/${sessionId}`);
+      const res = await api.get(`/payments/verify-stripe/${sessionId}`, authConfig());
       if (res.data.success) {
         console.log('Payment verified:', res.data);
       }
@@ -75,7 +86,7 @@ const Wallet = () => {
 
   const verifyFlutterwave = async (transactionId) => {
     try {
-      await api.get(`/payments/flutterwave/verify?transaction_id=${transactionId}`);
+      await api.get(`/payments/flutterwave/verify?transaction_id=${transactionId}`, authConfig());
     } catch (error) {
       console.error('Flutterwave verification failed:', error);
     }
@@ -104,7 +115,7 @@ const Wallet = () => {
         ? '/payments/create-stripe-session'
         : '/payments/create-flutterwave-session';
 
-      const res = await api.post(endpoint);
+      const res = await api.post(endpoint, authConfig());
       if (res.data.success && res.data.url) {
         window.location.href = res.data.url;
         return;

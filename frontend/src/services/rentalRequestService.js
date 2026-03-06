@@ -4,7 +4,7 @@ import api from './api';
 const getAuthToken = () => {
   const raw = localStorage.getItem('userInfo');
   const parsed = raw ? JSON.parse(raw) : {};
-  return parsed?.token || parsed?.accessToken || parsed?.user?.token || localStorage.getItem('token') || '';
+  return parsed?.firstLoginToken || parsed?.token || parsed?.accessToken || parsed?.user?.token || localStorage.getItem('token') || '';
 };
 
 const authConfig = () => {

@@ -1,26 +1,22 @@
 import api from './api';
 
+export const getPublicProperties = async () => (await api.get('/properties/public')).data;
+export const getPublicPropertyById = async (id) => (await api.get(`/properties/public/${id}`)).data;
 export const getProperties = async () => {
-  const response = await api.get('/properties');
-  return response.data;
+  const { data } = await api.get('/properties/my');
+  return data;
 };
+export const getPropertyById = async (id) => (await api.get(`/properties/${id}`)).data;
+export const createProperty = async (payload) => (await api.post('/properties', payload)).data;
+export const deleteProperty = async (id) => (await api.delete(`/properties/${id}`)).data;
+export const uploadPropertyImages = async (files) => {
+  const form = new FormData();
+  files.forEach((f) => form.append('images', f)); // field name must be "images"
 
-export const createProperty = async (propertyData) => {
-  const response = await api.post('/properties', propertyData);
-  return response.data;
-};
+  const { data } = await api.post('/properties/upload', form, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
 
-export const getPropertyById = async (id) => {
-  const response = await api.get(`/properties/${id}`);
-  return response.data;
-};
-
-export const updateProperty = async (id, propertyData) => {
-  const response = await api.put(`/properties/${id}`, propertyData);
-  return response.data;
-};
-
-export const deleteProperty = async (id) => {
-  const response = await api.delete(`/properties/${id}`);
-  return response.data;
+  // normalize backend response
+  return data?.urls || data?.images || [];
 };

@@ -1,33 +1,18 @@
 const express = require('express');
 const router = express.Router();
-const { 
-  getPayments, 
-  getTenantPayments,
-  processPayment,
-  getPaymentStats,
-  verifyPaystackPayment,
-  createStripeCheckoutSession,
-  stripeWebhook,
-  verifyStripePayment
-} = require('../controllers/paymentController');
-const { protect, landlordOnly, tenantOnly } = require('../middleware/authMiddleware');
+const { protect } = require('../middleware/authMiddleware');
+const paymentController = require('../controllers/paymentController');
 
-// Landlord payment routes
-router.get('/landlord', protect, landlordOnly, getPayments);
-router.get('/landlord/stats', protect, landlordOnly, getPaymentStats);
+const must = (fn, name) => {
+  if (typeof fn !== 'function') {
+    throw new Error(`paymentRoutes: missing controller handler -> ${name}`);
+  }
+  return fn;
+};
 
-// Tenant payment routes
-router.get('/tenant', protect, tenantOnly, getTenantPayments);
-
-// Legacy routes (deprecated - kept for backwards compatibility)
-router.post('/tenant/pay', protect, tenantOnly, processPayment); // Deprecated: Use Stripe instead
-router.post('/verify-paystack', protect, tenantOnly, verifyPaystackPayment); // Deprecated: Use Stripe instead
-
-// ============================================
-// ACTIVE PAYMENT METHOD: STRIPE
-// ============================================
-router.post('/create-stripe-session', protect, tenantOnly, createStripeCheckoutSession);
-router.post('/stripe-webhook', express.raw({type: 'application/json'}), stripeWebhook);
-router.get('/verify-stripe/:sessionId', protect, tenantOnly, verifyStripePayment);
+// Replace names below with the exact handlers your project uses:
+router.get('/', protect, must(paymentController.getPayments, 'getPayments'));
+router.post('/', protect, must(paymentController.createPayment, 'createPayment'));
+router.get('/:id', protect, must(paymentController.getPaymentById, 'getPaymentById'));
 
 module.exports = router;

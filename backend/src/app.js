@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
 
 dotenv.config();
 
@@ -11,6 +12,8 @@ const tenantRoutes = require('./routes/tenantRoutes');
 const paymentRoutes = require('./routes/paymentRoutes');
 const leaseRoutes = require('./routes/leaseRoutes');
 const documentRoutes = require('./routes/documentRoutes');
+const rentalRequestRoutes = require('./routes/rentalRequestRoutes');
+const landlordRoutes = require('./routes/landlordRoutes'); // add
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
@@ -42,5 +45,8 @@ app.use('/api/tenants', tenantRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/leases', leaseRoutes);
 app.use('/api/documents', documentRoutes);
+app.use('/api/rental-requests', rentalRequestRoutes);
+app.use('/api/landlord', landlordRoutes); // add
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 module.exports = app;

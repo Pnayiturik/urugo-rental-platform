@@ -9,6 +9,7 @@ const Wallet = () => {
   const [loading, setLoading] = useState(true);
   const [paymentStatus, setPaymentStatus] = useState(null); // 'success', 'canceled', or null
   const [processing, setProcessing] = useState(false);
+  const [gateway, setGateway] = useState('stripe'); // stripe | flutterwave
 
   useEffect(() => {
     const fetchLeaseData = async () => {
@@ -35,17 +36,29 @@ const Wallet = () => {
     const canceled = urlParams.get('canceled');
     const sessionId = urlParams.get('session_id');
 
+    // Stripe callback
     if (success === 'true' && sessionId) {
       setPaymentStatus('success');
-      // Optionally verify payment on backend
       verifyPayment(sessionId);
-      // Clean up URL
       window.history.replaceState({}, document.title, '/tenant/wallet');
     } else if (canceled === 'true') {
       setPaymentStatus('canceled');
-      // Clean up URL
       window.history.replaceState({}, document.title, '/tenant/wallet');
       setTimeout(() => setPaymentStatus(null), 5000); // Clear message after 5s
+    }
+
+    // Flutterwave callback
+    const fwStatus = urlParams.get('status');
+    const fwTxId = urlParams.get('transaction_id');
+
+    if (fwStatus === 'successful' && fwTxId) {
+      setPaymentStatus('success');
+      verifyFlutterwave(fwTxId);
+      window.history.replaceState({}, document.title, '/tenant/wallet');
+    } else if (canceled === 'true' || fwStatus === 'cancelled') {
+      setPaymentStatus('canceled');
+      window.history.replaceState({}, document.title, '/tenant/wallet');
+      setTimeout(() => setPaymentStatus(null), 5000);
     }
   }, []);
 
@@ -57,6 +70,14 @@ const Wallet = () => {
       }
     } catch (error) {
       console.error('Payment verification failed:', error);
+    }
+  };
+
+  const verifyFlutterwave = async (transactionId) => {
+    try {
+      await api.get(`/payments/flutterwave/verify?transaction_id=${transactionId}`);
+    } catch (error) {
+      console.error('Flutterwave verification failed:', error);
     }
   };
 
@@ -79,22 +100,19 @@ const Wallet = () => {
     setProcessing(true);
 
     try {
-      console.log('Creating Stripe checkout session...');
-      const res = await api.post('/payments/create-stripe-session');
-      
+      const endpoint = gateway === 'stripe'
+        ? '/payments/create-stripe-session'
+        : '/payments/create-flutterwave-session';
+
+      const res = await api.post(endpoint);
       if (res.data.success && res.data.url) {
-        console.log('Redirecting to Stripe checkout:', res.data.url);
-        // Redirect to Stripe Checkout
         window.location.href = res.data.url;
-      } else {
-        alert('Failed to initialize payment. Please try again.');
-        setProcessing(false);
+        return;
       }
+      alert('Failed to initialize payment. Please try again.');
     } catch (error) {
-      console.error('=== Stripe Checkout Error ===');
-      console.error('Error:', error);
-      console.error('Error response:', error.response?.data);
       alert(`Payment error: ${error.response?.data?.message || error.message}`);
+    } finally {
       setProcessing(false);
     }
   };
@@ -139,7 +157,7 @@ const Wallet = () => {
               disabled={processing || loading || !lease}
               className="mt-8 bg-white text-[#54ab91] px-8 py-3 rounded-xl font-bold hover:bg-slate-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {processing ? 'Redirecting to Stripe...' : 'Pay Rent Now'} <ArrowUpRight size={18} />
+              {processing ? `Redirecting to ${gateway === 'stripe' ? 'Stripe' : 'Flutterwave'}...` : 'Pay Rent Now'} <ArrowUpRight size={18} />
             </button>
           </div>
           {/* Decorative Circle */}
@@ -162,6 +180,18 @@ const Wallet = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <label className="text-xs text-slate-500 block mb-2">Payment Method</label>
+        <select
+          value={gateway}
+          onChange={(e) => setGateway(e.target.value)}
+          className="px-4 py-2 rounded-lg text-slate-800 font-medium"
+        >
+          <option value="stripe">Card (Stripe)</option>
+          <option value="flutterwave">Mobile Money/Card (Flutterwave)</option>
+        </select>
       </div>
     </div>
   );

@@ -1,59 +1,72 @@
 const nodemailer = require('nodemailer');
+let transporter = null;
 
-let transporter;
+// ... (keep initializeTransporter and sendEmail logic as you have it)
 
 const initializeTransporter = async () => {
-  // For production, use your Gmail/SMTP settings from .env
+  if (transporter) return transporter;
+
   transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.ethereal.email',
-    port: process.env.EMAIL_PORT || 587,
-    secure: false, 
+    host: process.env.EMAIL_HOST,
+    port: Number(process.env.EMAIL_PORT || 587),
+    secure: String(process.env.EMAIL_SECURE || 'false') === 'true',
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS
+      pass: process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD
     }
   });
-  console.log('📧 Email service initialized');
+
+  // Optional but useful for startup validation
+  await transporter.verify();
+  return transporter;
 };
 
-const sendTenantInvitation = async ({ tenantEmail, tenantName, landlordName, propertyName, unitNumber, rent, tempPassword, loginUrl }) => {
-  if (!transporter) await initializeTransporter();
+const sendEmail = async ({ to, subject, html, text }) => {
+  const t = await initializeTransporter();
+  return t.sendMail({
+    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+    to,
+    subject,
+    html,
+    text
+  });
+};
 
-  const brandColor = '#54ab91';
-
-  const mailOptions = {
-    from: `"Urugo Rental Platform" <${process.env.EMAIL_USER}>`,
-    to: tenantEmail,
-    subject: `🏠 Invitation to join Urugo - ${propertyName}`,
-    html: `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;">
-        <div style="background-color: ${brandColor}; padding: 32px; text-align: center;">
-          <h1 style="color: white; margin: 0; font-size: 24px;">Welcome to Urugo</h1>
-        </div>
-        <div style="padding: 32px; background-color: white;">
-          <h2 style="color: #1e293b; margin-top: 0;">Hello ${tenantName},</h2>
-          <p style="color: #64748b; line-height: 1.6;">${landlordName} has invited you to manage your new rental digitally. This ensures transparency and a verifiable rental history for you.</p>
-          
-          <div style="background-color: #f8fafc; border-left: 4px solid ${brandColor}; padding: 16px; margin: 24px 0;">
-            <p style="margin: 0; font-weight: bold; color: #1e293b;">Property: ${propertyName}</p>
-            <p style="margin: 4px 0; color: #64748b;">Unit: ${unitNumber} | Rent: ${rent} RWF</p>
-          </div>
-
-          <div style="background-color: #fffbeb; border: 1px solid #fde68a; padding: 16px; border-radius: 12px; margin-bottom: 24px;">
-            <p style="margin: 0; font-size: 14px; color: #92400e;"><strong>Temporary Password:</strong> ${tempPassword}</p>
-            <p style="margin: 4px 0; font-size: 12px; color: #b45309;">Please change this immediately after your first login.</p>
-          </div>
-
-          <a href="${loginUrl}" style="display: block; background-color: ${brandColor}; color: white; text-align: center; padding: 16px; border-radius: 12px; text-decoration: none; font-weight: bold;">Login to Your Dashboard</a>
-        </div>
-        <div style="background-color: #f1f5f9; padding: 16px; text-align: center; font-size: 12px; color: #94a3b8;">
-          © 2026 Urugo Rental Platform • Kigali, Rwanda
-        </div>
+const sendTenantInvitation = async ({
+  tenantEmail,
+  tenantName,
+  landlordName,
+  propertyName,
+  unitNumber,
+  rent,
+  tempPassword,
+  loginUrl
+}) => {
+  const subject = `Welcome to your new home at ${propertyName}!`;
+  const html = `
+    <div style="font-family: sans-serif; color: #334155; max-width: 600px; margin: auto; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px;">
+      <h2 style="font-size: 24px; font-weight: 900; color: #0f172a;">Welcome to Urugo</h2>
+      <p style="font-size: 16px; color: #64748b;">
+        Hello ${tenantName}, your landlord ${landlordName} has assigned you to <b>Unit ${unitNumber}</b> at <b>${propertyName}</b>.
+      </p>
+      <div style="background-color: #f8fafc; border-radius: 16px; padding: 24px; margin: 24px 0;">
+        <p style="margin: 0; font-size: 12px; font-weight: 900; text-transform: uppercase; color: #94a3b8;">Login Credentials</p>
+        <p style="margin: 12px 0 4px 0;"><strong>Email:</strong> ${tenantEmail}</p>
+        <p style="margin: 0;"><strong>Temporary Password:</strong> <span style="color: #54ab91; font-weight: bold;">${tempPassword}</span></p>
       </div>
-    `
-  };
-
-  return await transporter.sendMail(mailOptions);
+      <a href="${loginUrl}" style="display: inline-block; background-color: #54ab91; color: white; padding: 14px 28px; border-radius: 12px; text-decoration: none; font-weight: bold;">
+        Access Your Dashboard
+      </a>
+      <p style="margin-top: 24px; font-size: 12px; color: #94a3b8;">
+        <b>Important:</b> You will be required to change this password on your first login for security.
+      </p>
+    </div>
+  `;
+  return sendEmail({ to: tenantEmail, subject, html });
 };
 
-module.exports = { initializeTransporter, sendTenantInvitation };
+module.exports = {
+  initializeTransporter,
+  sendEmail,
+  sendTenantInvitation
+};

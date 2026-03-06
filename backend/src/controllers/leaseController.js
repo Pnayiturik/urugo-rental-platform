@@ -1,185 +1,249 @@
-const Lease = require('../models/Lease');
-const Property = require('../models/Property');
-const User = require('../models/User');
-const Document = require('../models/Document');
-const { sendTenantInvitation } = require('../services/emailService');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-const mongoose = require('mongoose');
+const Lease = require('../models/Lease');
+const User = require('../models/User');
+const Property = require('../models/Property');
+const Document = require('../models/Document');
+const { sendTenantInvitation } = require('../services/emailService');
 
-exports.createLease = async (req, res) => {
+const isNationalId = (value) => /^\d{16}$/.test(String(value || '').trim());
+
+const createLease = async (req, res) => {
   try {
-    console.log('📝 Creating lease with data:', req.body);
-    console.log('🔌 Database connection state:', mongoose.connection.readyState); // 1 = connected, 0 = disconnected
-    console.log('🗄️  Connected to database:', mongoose.connection.name);
-    
-    // Check current database state
-    const userCountBefore = await User.countDocuments();
-    const leaseCountBefore = await Lease.countDocuments();
-    console.log('📊 BEFORE: Users in DB:', userCountBefore, '| Leases in DB:', leaseCountBefore);
-    
-    const { 
-      tenantEmail, tenantFirstName, tenantLastName, 
-      propertyId, unitNumber, startDate, endDate, rentAmount, terms 
-    } = req.body;
+    const landlordId = req.user?._id || req.userId;
+    if (!landlordId) return res.status(401).json({ message: 'Unauthorized' });
 
-    // 1. Manage Tenant Account
-    let tenant = await User.findOne({ email: tenantEmail.toLowerCase() });
-    const tempPassword = crypto.randomBytes(4).toString('hex');
+    const propertyId = req.body.propertyId;
+    const unitId = req.body.unitId || req.body.requestedUnit;
+    const tenantEmail = String(req.body.tenantEmail || req.body.email || '').toLowerCase().trim();
+    const tenantFirstName = (req.body.tenantFirstName || req.body.firstName || '').trim();
+    const tenantLastName = (req.body.tenantLastName || req.body.lastName || 'Tenant').trim();
+    const tenantPhone = (req.body.tenantPhone || req.body.phone || '').trim();
+    const tenantNationalId = (req.body.nationalId || req.body.tenantNationalId || '').trim();
+    const tenantPassport = (req.body.passportNumber || req.body.tenantPassportNumber || '').trim();
+
+    if (!propertyId || !unitId || !tenantEmail || !tenantFirstName) {
+      return res.status(400).json({
+        message: 'Missing required fields: propertyId, unitId/requestedUnit, tenantEmail, tenantFirstName'
+      });
+    }
+
+    const property = await Property.findById(propertyId);
+    if (!property) return res.status(404).json({ message: 'Property not found' });
+
+    const propertyOwnerId =
+      property.landlord || property.createdBy || property.owner || property.user;
+
+    if (!propertyOwnerId || String(propertyOwnerId) !== String(landlordId)) {
+      return res.status(403).json({ message: 'You are not allowed to assign this property' });
+    }
+
+    const unit = property.units.id(unitId) || property.units.find((u) => String(u._id) === String(unitId));
+    if (!unit) return res.status(400).json({ message: 'Selected unit not found in property' });
+
+    if (unit.status !== 'vacant') {
+      return res.status(400).json({ message: 'Selected unit is not vacant' });
+    }
+
+
+    let tenant = await User.findOne({ email: tenantEmail });
+    let generatedTempPassword = null;
+    let newUserCreated = false;
 
     if (!tenant) {
-      console.log('🆕 Creating NEW tenant user for:', tenantEmail);
-      const hashedPassword = await bcrypt.hash(tempPassword, 10);
-      
+      generatedTempPassword = crypto.randomBytes(6).toString('base64url');
+      const hashedPassword = await bcrypt.hash(generatedTempPassword, 10);
+
       tenant = await User.create({
         firstName: tenantFirstName,
         lastName: tenantLastName,
-        email: tenantEmail.toLowerCase(),
+        email: tenantEmail,
         password: hashedPassword,
+        phone: tenantPhone,
         role: 'tenant',
-        isActive: true
+        canLogin: true,
+        mustChangePassword: true,
+        invitedByLandlord: landlordId
       });
-      
-      console.log('✅ Tenant CREATED:', tenant._id);
-      console.log('📧 Email:', tenant.email);
-      console.log('🔑 Temp Password:', tempPassword);
-      
-      // Verify it was actually saved
-      const verifyTenant = await User.findById(tenant._id);
-      if (!verifyTenant) {
-        console.error('⚠️ WARNING: Tenant created but NOT FOUND in database!');
-        console.error('Database connection issue or buffering problem!');
-      } else {
-        console.log('✅ VERIFIED: Tenant exists in database');
-      }
-    } else {
-      console.log('👤 Tenant ALREADY EXISTS:', tenant._id);
-      console.log('📧 Existing email:', tenant.email);
-      console.log('⚠️ NOT creating new user, NOT updating password');
+      newUserCreated = true;
     }
 
-    // 2. Create Lease
-    console.log('📋 Creating lease for tenant:', tenant._id);
+    // --- Compute startDate and endDate before using them ---
+    const startDate = req.body.startDate ? new Date(req.body.startDate) : new Date();
+    const endDate = req.body.endDate
+      ? new Date(req.body.endDate)
+      : new Date(new Date(startDate).setFullYear(startDate.getFullYear() + 1));
+
+    // --- Ensure a Tenant record exists for this user/property/unit ---
+    const Tenant = require('../models/Tenant');
+    let tenantRecord = await Tenant.findOne({ userId: tenant._id, propertyId: property._id, unitId: unit._id });
+    if (!tenantRecord) {
+      tenantRecord = await Tenant.create({
+        userId: tenant._id,
+        landlordId: landlordId,
+        propertyId: property._id,
+        unitId: unit._id,
+        leaseStart: startDate,
+        leaseEnd: endDate,
+        rentAmount: Number(req.body.rentAmount || unit.rent || 0),
+        status: 'active'
+      });
+    }
+
+    const paymentTerms = req.body.paymentTerms || property.paymentTerms || 'full';
+
     const lease = await Lease.create({
-      landlordId: req.userId,
+      landlordId,
       tenantId: tenant._id,
-      propertyId,
-      unitNumber,
+      propertyId: property._id,
+      unitNumber: unit.unitNumber,
       startDate,
       endDate,
-      rentAmount,
-      terms: terms || 'Standard Urugo Rental Agreement: Tenant agrees to pay rent on time via MoMo/Airtel.'
+      rentAmount: Number(req.body.rentAmount || unit.rent || 0),
+      paymentPlan: paymentTerms,
+      paymentTerms,
+      cautionFee: Number(req.body.cautionFee ?? property.cautionFee ?? 0),
+      paymentType: req.body.paymentType || 'Full',
+      status: req.body.status || 'active',
+      terms: req.body.terms || 'Standard Urugo Rental Agreement',
+      tenantIdentity: isNationalId(tenantNationalId)
+        ? { nationalId: tenantNationalId }
+        : { passportNumber: tenantPassport || tenantNationalId || `TENANT-${tenant._id}` },
+      landlordIdentity: isNationalId(req.body.landlordNationalId)
+        ? { nationalId: String(req.body.landlordNationalId).trim() }
+        : { passportNumber: String(req.body.landlordPassportNumber || `LANDLORD-${landlordId}`).trim() }
     });
-    console.log('✅ Lease CREATED:', lease._id);
-    console.log('📄 Lease terms saved:', lease.terms);
-    
-    // Verify lease was saved
-    const verifyLease = await Lease.findById(lease._id);
-    if (!verifyLease) {
-      console.error('⚠️ WARNING: Lease created but NOT FOUND in database!');
-    } else {
-      console.log('✅ VERIFIED: Lease exists in database');
+
+    unit.status = 'occupied';
+    await property.save();
+
+    await Document.create({
+      title: `Lease Agreement: ${tenant.firstName} ${tenant.lastName}`,
+      type: 'Lease',
+      ownerId: landlordId,
+      uploadedBy: landlordId,
+      relatedId: lease._id,
+      relatedTo: lease._id,
+      relatedModel: 'Lease'
+    });
+
+    if (generatedTempPassword) {
+      try {
+        const emailResult = await sendTenantInvitation({
+          tenantEmail: tenant.email,
+          tenantName: `${tenant.firstName} ${tenant.lastName}`,
+          landlordName: `${req.user?.firstName || 'Landlord'} ${req.user?.lastName || ''}`.trim(),
+          propertyName: property.name,
+          unitNumber: unit.unitNumber,
+          rent: lease.rentAmount,
+          tempPassword: generatedTempPassword,
+          loginUrl: process.env.FRONTEND_URL || 'http://localhost:5173/login'
+        });
+        if (emailResult && emailResult.accepted && emailResult.accepted.length > 0) {
+          console.log('📧 Tenant invitation sent to:', tenant.email);
+        } else {
+          console.warn('⚠️ Tenant invitation not accepted by mail server:', emailResult);
+        }
+      } catch (emailError) {
+        console.error('❌ Tenant invitation email failed:', emailError);
+      }
     }
 
-    // 3. Create Document Records (Case-sensitive 'Lease' for your Enum)
-    const documents = await Document.create([
-      {
-        title: `Lease Agreement - ${unitNumber}`,
-        type: 'Lease',
-        ownerId: req.userId,
-        relatedId: lease._id
-      },
-      {
-        title: `My Lease - ${unitNumber}`,
-        type: 'Lease',
-        ownerId: tenant._id,
-        relatedId: lease._id
-      }
-    ]);
-    console.log('✅ Documents created:', documents.length);
+    const populatedLease = await Lease.findById(lease._id)
+      .populate('propertyId', 'name address')
+      .populate('tenantId', 'firstName lastName email phone')
+      .populate('landlordId', 'firstName lastName email phone');
 
-    // 4. Update Property Status
-    await Property.updateOne(
-      { _id: propertyId, "units.unitNumber": unitNumber },
-      { $set: { "units.$.status": "occupied" } }
-    );
-
-    // 5. Send Email
-    const landlord = await User.findById(req.userId);
-    await sendTenantInvitation({
-      tenantEmail: tenant.email,
-      tenantName: tenant.firstName,
-      landlordName: landlord ? `${landlord.firstName} ${landlord.lastName}` : 'Your Landlord',
-      propertyName: "Urugo Managed Property",
-      unitNumber,
-      rent: rentAmount,
-      tempPassword,
-      loginUrl: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`
+    return res.status(201).json({
+      success: true,
+      lease: populatedLease,
+      ...(generatedTempPassword ? { tenantCredentials: { email: tenant.email, tempPassword: generatedTempPassword } } : {})
     });
-    console.log('✅ Email sent successfully');
-
-    // Final verification
-    const userCountAfter = await User.countDocuments();
-    const leaseCountAfter = await Lease.countDocuments();
-    console.log('📊 AFTER: Users in DB:', userCountAfter, '| Leases in DB:', leaseCountAfter);
-    console.log('📈 Changes: Users +', (userCountAfter - userCountBefore), '| Leases +', (leaseCountAfter - leaseCountBefore));
-
-    res.status(201).json({ success: true, lease });
   } catch (error) {
-    console.error('❌ LEASE CREATION FAILED:', error.message);
-    console.error('❌ Error name:', error.name);
-    console.error('❌ Error code:', error.code);
-    console.error('❌ Full error:', error);
-    
-    // Check if it's a MongoDB error
-    if (error.name === 'MongoError' || error.name === 'MongoServerError') {
-      console.error('⚠️ DATABASE ERROR DETECTED');
-      if (error.code === 11000) {
-        console.error('⚠️ Duplicate key error - User or Lease already exists');
-      }
-    }
-    
-    // Check if it's a validation error
-    if (error.name === 'ValidationError') {
-      console.error('⚠️ VALIDATION ERROR:', error.errors);
-    }
-    
-    res.status(500).json({ 
-      success: false,
-      message: error.message,
-      errorType: error.name 
-    });
+    return res.status(500).json({ message: error.message });
   }
 };
 
-exports.getMyLeases = async (req, res) => {
+const getMyLeases = async (req, res) => {
   try {
-    const leases = await Lease.find({ landlordId: req.userId })
-      .populate('tenantId', 'firstName lastName email')
-      .populate('propertyId', 'name address');
-    res.status(200).json({ success: true, leases });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
+    const userId = req.user?._id || req.userId;
+    const query = req.user?.role === 'tenant' ? { tenantId: userId } : { landlordId: userId };
 
-exports.getTenantLease = async (req, res) => {
-  try {
-    console.log('🔍 Fetching lease for tenant:', req.userId);
-    const lease = await Lease.findOne({ tenantId: req.userId })
+    const leases = await Lease.find(query)
+      .populate('propertyId', 'name address')
+      .populate('tenantId', 'firstName lastName email phone')
       .populate('landlordId', 'firstName lastName email phone')
-      .populate('propertyId', 'name address');
-    
-    if (!lease) {
-      console.log('❌ No lease found for tenant:', req.userId);
-      return res.status(404).json({ message: 'No lease found' });
-    }
-    
-    console.log('✅ Lease found:', lease._id);
-    console.log('📄 Lease terms being sent:', lease.terms);
-    res.status(200).json({ success: true, lease });
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ success: true, leases });
   } catch (error) {
-    console.error('❌ Error fetching tenant lease:', error);
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
+};
+
+const getMyLease = async (req, res) => {
+  try {
+    const userId = req.user?._id || req.userId;
+    const lease = await Lease.findOne({ tenantId: userId, status: { $in: ['active', 'Active'] } })
+      .populate('propertyId', 'name address')
+      .populate('tenantId', 'firstName lastName email phone')
+      .populate('landlordId', 'firstName lastName email phone')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ success: true, lease });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const getLeaseById = async (req, res) => {
+  try {
+    const lease = await Lease.findById(req.params.id)
+      .populate('propertyId', 'name address')
+      .populate('tenantId', 'firstName lastName email phone')
+      .populate('landlordId', 'firstName lastName email phone');
+
+    if (!lease) return res.status(404).json({ message: 'Lease not found' });
+
+    const userId = String(req.user?._id || req.userId);
+    const canAccess =
+      String(lease.landlordId?._id || lease.landlordId) === userId ||
+      String(lease.tenantId?._id || lease.tenantId) === userId;
+
+    if (!canAccess) return res.status(403).json({ message: 'Access denied' });
+
+    return res.status(200).json({ success: true, lease });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+const updateLeaseStatus = async (req, res) => {
+  try {
+    const allowedStatuses = ['active', 'expired', 'terminated', 'Draft', 'Active'];
+    const { status } = req.body;
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: 'Invalid lease status' });
+    }
+
+    const lease = await Lease.findOne({ _id: req.params.id, landlordId: req.user?._id || req.userId });
+    if (!lease) return res.status(404).json({ message: 'Lease not found' });
+
+    lease.status = status;
+    await lease.save();
+
+    return res.status(200).json({ success: true, lease });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+module.exports = {
+  createLease,
+  getMyLeases,
+  getMyLease,
+  getLeaseById,
+  updateLeaseStatus,
+  assignRentalRequest: createLease
 };

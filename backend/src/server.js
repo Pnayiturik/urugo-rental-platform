@@ -3,6 +3,8 @@ const connectDB = require('./config/db');
 const { initializeTransporter } = require('./services/emailService');
 const { startReminderScheduler } = require('./services/paymentReminderJob');
 require('dotenv').config();
+const path = require('path');
+const express = require('express');
 
 const PORT = process.env.PORT || 5000;
 
@@ -20,5 +22,10 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+const tenantIncidentRoutes = require('./routes/tenantIncidentRoutes');
+app.use('/api/tenant-incidents', tenantIncidentRoutes);
 
 startServer();

@@ -20,6 +20,10 @@ const paymentSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  paidAmount: {
+    type: Number,
+    default: 0
+  },
   dueDate: {
     type: Date,
     required: true
@@ -29,7 +33,7 @@ const paymentSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['mtn_mobile_money', 'airtel_money', 'stripe', 'card', 'mobile_money'],
+    enum: ['mtn_mobile_money', 'airtel_money', 'stripe', 'card', 'mobile_money', 'flutterwave'],
     sparse: true
   },
   phoneNumber: {
@@ -42,9 +46,16 @@ const paymentSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['pending', 'completed', 'overdue', 'failed'],
+    enum: ['pending', 'completed', 'overdue', 'failed', 'partial'],
     default: 'pending'
   },
+
+  paymentType: {
+    type: String,
+    enum: ['Partial', 'Overdue', 'Full'],
+    default: 'Full'
+  },
+
   paymentFor: {
     type: String,
     enum: ['rent', 'deposit', 'utilities', 'maintenance', 'other'],

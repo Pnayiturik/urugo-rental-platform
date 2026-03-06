@@ -33,8 +33,9 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 const getPayments = async (req, res) => {
   try {
     await checkOverduePayments();
+    const userId = req.userId || req.user?._id;
 
-    const payments = await Payment.find({ landlordId: req.userId })
+    const payments = await Payment.find({ landlordId: userId })
       .populate('tenantId', 'firstName lastName email')
       .populate('propertyId', 'name address')
       .sort({ createdAt: -1 });
@@ -42,6 +43,29 @@ const getPayments = async (req, res) => {
     res.status(200).json({ success: true, payments });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+};
+
+// Backward-compatible alias for old route: POST /api/payments
+const createPayment = async (req, res) => {
+  return createStripeCheckoutSession(req, res);
+};
+
+// Backward-compatible handler for old route: GET /api/payments/:id
+const getPaymentById = async (req, res) => {
+  try {
+    const userId = req.userId || req.user?._id;
+    const payment = await Payment.findOne({
+      _id: req.params.id,
+      $or: [{ landlordId: userId }, { tenantId: userId }]
+    })
+      .populate('tenantId', 'firstName lastName email')
+      .populate('propertyId', 'name address');
+
+    if (!payment) return res.status(404).json({ success: false, message: 'Payment not found' });
+    return res.status(200).json({ success: true, payment });
+  } catch (error) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -471,12 +495,13 @@ const verifyStripePayment = async (req, res) => {
 
 module.exports = {
   getPayments,
+  createPayment,
+  getPaymentById,
   getTenantPayments,
-  processPayment, // Deprecated - kept for backwards compatibility
+  processPayment,
   verifyPaymentStatus,
   getPaymentStats,
-  verifyPaystackPayment, // Deprecated - kept for backwards compatibility
-  // Active Stripe payment methods
+  verifyPaystackPayment,
   createStripeCheckoutSession,
   stripeWebhook,
   verifyStripePayment

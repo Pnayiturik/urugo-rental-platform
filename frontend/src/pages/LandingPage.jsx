@@ -1,16 +1,17 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  ShieldCheck, 
-  Smartphone, 
-  FileText, 
-  Users, 
-  ArrowRight, 
-  Building2, 
+import { getPublicProperties } from '../services/propertyService';
+import {
+  ShieldCheck,
+  ArrowRight,
+  CheckCircle2,
+  Smartphone,
   History,
+  FileText,
+  Building2,
+  Users,
   Lock,
-  MapPin,
-  CheckCircle2
+  MapPin
 } from 'lucide-react';
 
 /**
@@ -22,6 +23,45 @@ import {
 const LandingPage = () => {
   const navigate = useNavigate();
   const brandColor = '#54ab91';
+  const [properties, setProperties] = useState([]);
+
+  const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api').replace('/api', '');
+
+  const toImageUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url;
+    return `${API_ORIGIN}${url}`;
+  };
+
+  useEffect(() => {
+    const fetchPublic = async () => {
+      try {
+        const data = await getPublicProperties();
+        setProperties(data?.properties || []);
+      } catch (e) {
+        console.error(e);
+        setProperties([]);
+      }
+    };
+
+    fetchPublic();
+    const interval = setInterval(fetchPublic, 30000); // refresh every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const rentableProperties = properties.filter(
+    (p) =>
+      (p?.status ? p.status === 'available' : true) &&
+      (p.units || []).some((u) => !u?.status || u.status === 'vacant')
+  );
+
+  const previewProperties = rentableProperties.slice(0, 6);
+
+  const getStartingRent = (units = []) => {
+    const rents = units.map((u) => Number(u.rent || 0)).filter(Boolean);
+    if (!rents.length) return null;
+    return Math.min(...rents);
+  };
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 flex flex-col items-center">
@@ -186,6 +226,66 @@ const LandingPage = () => {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* --- Public Properties Preview --- */}
+      <section className="w-11/12 py-20 self-center">
+        <div className="flex items-end justify-between mb-6">
+          <h2 className="text-2xl md:text-3xl font-black text-slate-900">Available Properties</h2>
+          <button
+            onClick={() => navigate('/properties')}
+            style={{ color: brandColor }}
+            className="text-sm font-bold hover:underline"
+          >
+            View all properties
+          </button>
+        </div>
+
+        {previewProperties.length === 0 ? (
+          <div className="border border-dashed border-slate-300 rounded-2xl p-8 text-center text-slate-500">
+            No listings yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {previewProperties.map((p) => {
+              const startingRent = getStartingRent(p.units);
+              return (
+                <article
+                  key={p._id}
+                  onClick={() => navigate(`/properties/${p._id}`)}
+                  className="bg-white rounded-3xl border border-slate-200 overflow-hidden cursor-pointer hover:border-[#54ab91] transition"
+                >
+                  {p?.images?.[0] ? (
+                    <img
+                      src={toImageUrl(p.images[0])}
+                      alt={p?.name || 'Property'}
+                      className="h-44 w-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="h-44 w-full bg-slate-100 flex items-center justify-center text-slate-400 text-sm">
+                      No image
+                    </div>
+                  )}
+
+                  <div className="p-4 space-y-1">
+                    <h3 className="font-black text-slate-900 line-clamp-1">{p?.name}</h3>
+                    <p className="text-sm text-slate-500 line-clamp-1">
+                      {p?.address?.street}, {p?.address?.city}
+                    </p>
+                    <p className="text-xs text-slate-500 line-clamp-2">{p?.description || 'No description yet.'}</p>
+                    <div className="flex items-center justify-between pt-2">
+                      <p className="text-xs font-bold uppercase text-slate-400">{p?.propertyType}</p>
+                      {startingRent && (
+                        <p className="text-sm font-black text-[#54ab91]">From {startingRent.toLocaleString()} RWF</p>
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
 
       {/* --- Footer --- */}

@@ -1,13 +1,21 @@
 const express = require('express');
 const router = express.Router();
-const { createLease, getMyLeases, getTenantLease } = require('../controllers/leaseController');
-const { protect, landlordOnly, tenantOnly } = require('../middleware/authMiddleware');
+
+const { protect } = require('../middleware/authMiddleware');
+const {
+  createLease,
+  getMyLeases,
+  getMyLease,
+  getLeaseById,
+  updateLeaseStatus
+} = require('../controllers/leaseController');
 
 // Landlord routes
-router.post('/', protect, landlordOnly, createLease);
-router.get('/', protect, landlordOnly, getMyLeases);
-
-// Tenant route
-router.get('/my-lease', protect, tenantOnly, getTenantLease);
+router.post('/', protect, createLease);
+router.get('/', protect, getMyLeases);
+router.get('/my', protect, getMyLeases);
+router.get('/my-lease', protect, getMyLease);
+router.get('/:id', protect, getLeaseById);
+router.put('/:id/status', protect, updateLeaseStatus);
 
 module.exports = router;

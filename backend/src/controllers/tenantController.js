@@ -10,7 +10,9 @@ const generateTempPassword = () => {
 
 const getTenants = async (req, res) => {
   try {
-    const tenants = await Tenant.find({ landlordId: req.userId })
+    if (!req.user?._id) return res.status(401).json({ message: 'Not authorized' });
+
+    const tenants = await Tenant.find({ landlordId: req.user._id })
       .populate('userId', 'firstName lastName email phone')
       .populate('propertyId', 'name address');
     res.status(200).json({ success: true, tenants });
@@ -21,6 +23,8 @@ const getTenants = async (req, res) => {
 
 const createTenant = async (req, res) => {
   try {
+    if (!req.user?._id) return res.status(401).json({ message: 'Not authorized' });
+
     const { 
       firstName, 
       lastName, 
@@ -43,7 +47,8 @@ const createTenant = async (req, res) => {
       return res.status(400).json({ message: 'A user with this email already exists' });
     }
 
-    const property = await Property.findOne({ _id: propertyId, landlordId: req.userId });
+    const property = await Property.findOne({ _id: propertyId, landlord: req.user._id }); // was landlordId:req.userId
+
     if (!property) {
       return res.status(404).json({ message: 'Property not found' });
     }
@@ -72,7 +77,7 @@ const createTenant = async (req, res) => {
 
     const tenant = await Tenant.create({
       userId: newUser._id,
-      landlordId: req.userId,
+      landlordId: req.user._id,
       propertyId,
       unitId,
       leaseStart,
@@ -85,7 +90,7 @@ const createTenant = async (req, res) => {
     unit.status = 'occupied';
     await property.save();
 
-    const landlord = await User.findById(req.userId);
+    const landlord = await User.findById(req.user._id);
     const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/login`;
 
     try {
@@ -122,7 +127,9 @@ const createTenant = async (req, res) => {
 
 const getTenantById = async (req, res) => {
   try {
-    const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: req.userId })
+    if (!req.user?._id) return res.status(401).json({ message: 'Not authorized' });
+
+    const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: req.user._id })
       .populate('userId', 'firstName lastName email phone')
       .populate('propertyId', 'name address');
 
@@ -138,7 +145,9 @@ const getTenantById = async (req, res) => {
 
 const updateTenant = async (req, res) => {
   try {
-    const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: req.userId });
+    if (!req.user?._id) return res.status(401).json({ message: 'Not authorized' });
+
+    const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: req.user._id });
 
     if (!tenant) {
       return res.status(404).json({ message: 'Tenant not found' });
@@ -160,7 +169,9 @@ const updateTenant = async (req, res) => {
 
 const deleteTenant = async (req, res) => {
   try {
-    const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: req.userId });
+    if (!req.user?._id) return res.status(401).json({ message: 'Not authorized' });
+
+    const tenant = await Tenant.findOne({ _id: req.params.id, landlordId: req.user._id });
 
     if (!tenant) {
       return res.status(404).json({ message: 'Tenant not found' });

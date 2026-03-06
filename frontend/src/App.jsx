@@ -1,77 +1,72 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import React from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
+
+import LandingPage from './pages/LandingPage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+
 import LandlordLayout from './layouts/LandlordLayout';
 import TenantLayout from './layouts/TenantLayout';
+
 import LandlordHome from './pages/landlord/Home';
-import Properties from './pages/landlord/Properties';
-import PropertyDetails from './pages/landlord/PropertyDetails';
-import Renters from './pages/landlord/Renters';
-import Transactions from './pages/landlord/Transactions';
-import Leases from './pages/landlord/Leases'; 
+import LandlordProperties from './pages/landlord/Properties';
+import LandlordPropertyDetails from './pages/landlord/PropertyDetails';
+import LandlordDocuments from './pages/landlord/Documents';
+import LandlordLeases from './pages/landlord/Leases';
+import LandlordTransactions from './pages/landlord/Transactions';
+import LandlordRenters from './pages/landlord/Renters';
+import LandlordRequestsInbox from './pages/landlord/RequestsInbox';
+
 import TenantHome from './pages/tenant/Home';
-import LandingPage from './pages/LandingPage';
-import Documents from './pages/tenant/Documents';
+import TenantProperties from './pages/tenant/Properties';
+import PropertyDetail from './pages/tenant/PropertyDetail';
+import TenantDocuments from './pages/tenant/Documents';
 import TenantLease from './pages/tenant/TenantLease';
-import Wallet from './pages/tenant/Wallet';
 import TenantTransactions from './pages/tenant/Transactions';
-
-const ProtectedRoute = ({ children, role }) => {
-  const { user, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/login" />;
-  if (role && user.role !== role) return <Navigate to="/" />;
-  return children;
-};
-
-const RedirectIfAuth = ({ children }) => {
-  const { user, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
-  if (user) {
-    return <Navigate to={user.role === 'landlord' ? '/landlord' : '/tenant'} />;
-  }
-  return children;
-};
+import TenantRequests from './pages/tenant/Requests';
+import Wallet from './pages/tenant/Wallet';
+import PublicProperties from './pages/PublicProperties';
+import PublicPropertyDetail from './pages/PublicPropertyDetail';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<LandingPage/>} />
-          <Route path="/login" element={<RedirectIfAuth><Login /></RedirectIfAuth>} />
-          <Route path="/register" element={<RedirectIfAuth><Register /></RedirectIfAuth>} />
+    <Routes>
+      <Route path="/" element={<LandingPage />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
 
-          {/* Landlord Routes */}
-          <Route path="/landlord" element={
-            <ProtectedRoute role="landlord">
-              <LandlordLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<LandlordHome />} />
-            <Route path="properties" element={<Properties />} />
-            <Route path="properties/:id" element={<PropertyDetails />} />
-            <Route path="renters" element={<Renters />} />
-            <Route path="transactions" element={<Transactions />} />
-            <Route path="leases" element={<Leases />} />
-          </Route>
+      <Route path="/landlord" element={<LandlordLayout />}>
+        <Route index element={<Navigate to="home" replace />} />        
+        <Route path="home" element={<LandlordHome />} />
+        <Route path="properties" element={<LandlordProperties />} />
+        <Route path="properties/:id" element={<LandlordPropertyDetails />} />
+        <Route path="documents" element={<LandlordDocuments />} />
+        <Route path="leases" element={<LandlordLeases />} />
+        <Route path="transactions" element={<LandlordTransactions />} />
+        <Route path="renters" element={<LandlordRenters />} />
+        <Route path="requests" element={<LandlordRequestsInbox />} />
+        <Route path="*" element={<Navigate to="home" replace />} />
+      </Route>
 
-          {/* Tenant Routes */}
-          <Route path="/tenant" element={
-            <ProtectedRoute role="tenant">
-              <TenantLayout />
-            </ProtectedRoute>
-          }>
-            <Route index element={<TenantHome />} />
-            <Route path="documents" element={<Documents />} />
-            <Route path="lease" element={<TenantLease />} />
-            <Route path="wallet" element={<Wallet />} />
-            <Route path="transactions" element={<TenantTransactions />} />
-          </Route>
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+      <Route path="/tenant" element={<TenantLayout />}>
+        <Route index element={<Navigate to="home" replace />} />
+        <Route path="home" element={<TenantHome />} />
+        <Route path="properties" element={<TenantProperties />} />
+        <Route path="properties/:id" element={<PropertyDetail />} />
+        <Route path="requests" element={<TenantRequests />} />
+        <Route path="documents" element={<TenantDocuments />} />
+        <Route path="lease" element={<TenantLease />} />
+        <Route path="wallet" element={<Wallet />} />
+        <Route path="transactions" element={<TenantTransactions />} />
+        <Route path="*" element={<Navigate to="home" replace />} />
+      </Route>
+
+      {/* Public property browsing (no sidebar) */}
+      <Route path="/properties" element={<PublicProperties />} />
+      <Route path="/properties/:id" element={<PublicPropertyDetail />} />
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

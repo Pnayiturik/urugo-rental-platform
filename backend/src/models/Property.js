@@ -28,15 +28,21 @@ const unitSchema = new mongoose.Schema({
 });
 
 const propertySchema = new mongoose.Schema({
-  landlordId: {
+  landlord: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    index: true
   },
   name: {
     type: String,
     required: true,
     trim: true
+  },
+  description: {
+    type: String,
+    trim: true,
+    default: ''
   },
   address: {
     street: { type: String, required: true },
@@ -50,7 +56,40 @@ const propertySchema = new mongoose.Schema({
     required: true
   },
   units: [unitSchema],
-  images: [String]
+  images: {
+    type: [String],
+    default: []
+  },
+
+  // Added advanced fields
+  cautionFee: { type: Number, default: 0, min: 0 },
+  furnishingStatus: {
+    type: String,
+    enum: ['furnished', 'semi-furnished', 'unfurnished'],
+    default: 'unfurnished'
+  },
+  squareFootage: { type: Number, min: 0 },
+  yearBuilt: { type: Number, min: 1800, max: 2100 },
+  utilitiesIncluded: {
+    type: [String],
+    default: []
+  },
+
+  paymentTerms: {
+    type: String,
+    enum: ['full', 'installments', 'advanced'],
+    default: 'full'
+  },
+  rules: [{ type: String, trim: true }],
+  locationDetails: {
+    coordinates: {
+      lat: { type: Number },
+      lng: { type: Number }
+    },
+    landmarks: [{ type: String, trim: true }],
+    proximityNote: { type: String, trim: true } // e.g. "Near Kanombe Airport"
+  },
+  minStay: { type: Number, min: 1, default: 30 }
 }, {
   timestamps: true
 });

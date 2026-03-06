@@ -46,11 +46,11 @@ function Home() {
           <p className="text-sm text-slate-500 font-medium uppercase tracking-widest mt-1">Portfolio Summary</p>
         </div>
         <button 
-          onClick={() => navigate('/landlord/properties/new')}
+          onClick={() => navigate('/landlord/properties?new=1')}
           style={{ backgroundColor: brandColor }}
           className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 text-white rounded-2xl font-bold active:scale-95 transition-transform"
         >
-          <Plus size={20} /> New Property
+          <Plus size={20} /> Add New Property
         </button>
       </div>
 

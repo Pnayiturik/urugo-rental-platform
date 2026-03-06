@@ -42,7 +42,15 @@ const userSchema = new mongoose.Schema({
   emailVerified: {
     type: Boolean,
     default: false
-  }
+  },
+  canLogin: {
+    type: Boolean,
+    default: function () {
+      return this.role !== 'tenant';
+    }
+  },
+  mustChangePassword: { type: Boolean, default: false },
+  invitedByLandlord: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null }
 }, {
   timestamps: true
 });

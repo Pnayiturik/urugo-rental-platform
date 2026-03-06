@@ -36,8 +36,18 @@ function Register() {
     setError('');
 
     try {
-      await handleRegister(formData);
-      navigate(formData.role === 'landlord' ? '/landlord' : '/tenant');
+      const res = await handleRegister(formData);
+      
+      // Determine role from response or fallback to formData
+      const userRole = res?.user?.role || formData.role;
+
+      if (userRole === 'landlord') {
+        navigate('/landlord/home');
+      } else if (userRole === 'tenant') {
+        navigate('/tenant/home');
+      } else {
+        navigate('/');
+      }
     } catch (err) {
       setError(err.message || 'Registration failed');
     } finally {

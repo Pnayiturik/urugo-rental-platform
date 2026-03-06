@@ -1,16 +1,21 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api';
-
 const api = axios.create({
-  baseURL: API_URL
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  const raw = localStorage.getItem('userInfo');
+  let token = localStorage.getItem('token') || '';
+
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      token = parsed?.token || parsed?.accessToken || parsed?.user?.token || token;
+    } catch {}
   }
+
+  if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
 

@@ -12,7 +12,9 @@ api.interceptors.request.use((config) => {
     try {
       const parsed = JSON.parse(raw);
       token = parsed?.token || parsed?.accessToken || parsed?.user?.token || token;
-    } catch {}
+    } catch {
+      console.warn('Failed to parse userInfo from localStorage');
+    }
   }
 
   if (token) config.headers.Authorization = `Bearer ${token}`;

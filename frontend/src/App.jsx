@@ -25,7 +25,7 @@ import TenantLease from './pages/tenant/TenantLease';
 import TenantTransactions from './pages/tenant/Transactions';
 import TenantRequests from './pages/tenant/Requests';
 import Wallet from './pages/tenant/Wallet';
-import PublicProperties from './pages/PublicProperties';
+import PublicProperties from './pages/PublicProperties'; 
 import PublicPropertyDetail from './pages/PublicPropertyDetail';
 
 function App() {

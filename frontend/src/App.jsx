@@ -22,7 +22,7 @@ import TenantProperties from './pages/tenant/Properties';
 import PropertyDetail from './pages/tenant/PropertyDetail';
 import TenantDocuments from './pages/tenant/Documents';
 import TenantLease from './pages/tenant/TenantLease';
-
+import TenantTransactions from './pages/tenant/Transactions';
 import TenantRequests from './pages/tenant/Requests';
 import Wallet from './pages/tenant/Wallet';
 import PublicProperties from './pages/PublicProperties';

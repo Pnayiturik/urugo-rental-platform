@@ -16,12 +16,9 @@ import {
   XCircle
 } from 'lucide-react';
 
-/**
- * Urugo Rental - Tenant Transaction History
- * Features: Payment tracking, Receipt downloads, Status monitoring
- */
 
-function Transactions() {
+
+function TenantTransactions() {
   const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
@@ -322,4 +319,4 @@ function Transactions() {
   );
 }
 
-export default Transactions;
+export default TenantTransactions;

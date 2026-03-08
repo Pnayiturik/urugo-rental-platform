@@ -2,33 +2,50 @@ const nodemailer = require('nodemailer');
 let transporter = null;
 
 
+
 const initializeTransporter = async () => {
   if (transporter) return transporter;
-
-  transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST,
-    port: Number(process.env.EMAIL_PORT || 587),
-    secure: String(process.env.EMAIL_SECURE || 'false') === 'true',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD
-    }
-  });
-
-  // Useful for startup validation
-  await transporter.verify();
-  return transporter;
+  // Check for required config
+  if (!process.env.EMAIL_HOST || !process.env.EMAIL_USER || !(process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD)) {
+    console.warn('[emailService] Email not configured. Skipping email features.');
+    return null;
+  }
+  try {
+    transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: Number(process.env.EMAIL_PORT || 587),
+      secure: String(process.env.EMAIL_SECURE || 'false') === 'true',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD
+      }
+    });
+    await transporter.verify();
+    return transporter;
+  } catch (err) {
+    console.warn('[emailService] Failed to initialize transporter:', err.message);
+    return null;
+  }
 };
 
 const sendEmail = async ({ to, subject, html, text }) => {
-  const t = await initializeTransporter();
-  return t.sendMail({
-    from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
-    to,
-    subject,
-    html,
-    text
-  });
+  try {
+    const t = await initializeTransporter();
+    if (!t) {
+      console.warn('[emailService] Email not sent (not configured):', subject);
+      return { skipped: true };
+    }
+    return await t.sendMail({
+      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      to,
+      subject,
+      html,
+      text
+    });
+  } catch (err) {
+    console.warn('[emailService] Email send failed, skipping:', err.message);
+    return { error: err.message };
+  }
 };
 
 const sendTenantInvitation = async ({

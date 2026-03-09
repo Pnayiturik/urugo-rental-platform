@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { Mail, Lock, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 /**
  * Urugo Rental - Modern Professional Login
@@ -18,6 +18,7 @@ function Login() {
   const { handleLogin } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const sessionExpired = searchParams.get('reason') === 'session_expired';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,6 +90,16 @@ function Login() {
             <h2 className="text-4xl font-bold text-gray-900 tracking-tight mb-3">Sign in</h2>
             <p className="text-gray-500 text-lg">Access your Urugo dashboard.</p>
           </div>
+
+          {sessionExpired && (
+            <div className="mb-6 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm flex items-start gap-3">
+              <AlertTriangle size={18} className="shrink-0 mt-0.5 text-amber-500" />
+              <div>
+                <p className="font-bold">Session Expired</p>
+                <p className="text-xs mt-0.5">Your session has timed out for security. Please sign in again.</p>
+              </div>
+            </div>
+          )}
 
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm animate-in fade-in slide-in-from-top-2">

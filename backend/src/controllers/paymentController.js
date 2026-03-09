@@ -22,7 +22,13 @@ const Document = require('../models/Document');
 const { checkOverduePayments, generateMonthlyPayments } = require('../services/paymentService');
 const { sendLandlordNotification } = require('../services/emailService');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
-// Stripe Public Key (for frontend reference): pk_test_51T5lWxH4WRKinPu9p6pahdTPnyewH1qb4Gyb7YgZSSjcdP51EbRUFtx5PHbNvVTuOEFkqnR6PtVttdzixrWQKH6q00KvEwKgnq
+const Flutterwave = require('flutterwave-node-v3');
+
+const flw = new Flutterwave(
+  process.env.FLW_PUBLIC_KEY,
+  process.env.FLW_SECRET_KEY,
+  true  // sandbox / test mode
+);
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
@@ -493,6 +499,295 @@ const verifyStripePayment = async (req, res) => {
   }
 };
 
+// ============================================================
+//  FLUTTERWAVE INTEGRATION
+// ============================================================
+
+/**
+ * @desc   Initialise a Flutterwave inline payment
+ * @route  POST /api/payments/flutterwave/init
+ * @access Private (tenant)
+ *
+ * Returns the config the React frontend uses to open the
+ * Flutterwave inline payment modal.
+ */
+const initFlutterwavePayment = async (req, res) => {
+  try {
+    const userId    = req.userId || req.user?._id;
+    const { paymentFor = 'rent' } = req.body;
+
+    const user  = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    // For rent / deposit we need the active lease
+    const lease = await Lease.findOne({ tenantId: userId })
+      .populate('propertyId')
+      .populate('landlordId');
+
+    if (!lease) {
+      return res.status(404).json({ success: false, message: 'No active lease found' });
+    }
+
+    // Determine amount & description
+    let amount;
+    let description;
+    switch (paymentFor) {
+      case 'deposit':
+        amount      = lease.propertyId?.cautionFee || 0;
+        description = `Security deposit – ${lease.propertyId?.name || 'Property'}`;
+        break;
+      case 'topup':
+        amount      = Number(req.body.amount) || 0;
+        description = 'Wallet top-up';
+        break;
+      default: // rent
+        amount      = lease.rentAmount || 0;
+        description = `Monthly rent – Unit ${lease.unitNumber}, ${lease.propertyId?.name || 'Property'}`;
+    }
+
+    if (amount <= 0) {
+      return res.status(400).json({ success: false, message: 'Invalid payment amount' });
+    }
+
+    // Create a unique transaction reference
+    const txRef = `URUGO-${paymentFor.toUpperCase()}-${userId}-${Date.now()}`;
+
+    // Persist a PENDING payment record so we can update it on webhook/callback
+    const pendingPayment = await Payment.create({
+      tenantId:      userId,
+      landlordId:    lease.landlordId?._id || lease.landlordId,
+      propertyId:    lease.propertyId?._id || lease.propertyId,
+      amount,
+      dueDate:       new Date(),
+      paymentMethod: 'flutterwave',
+      transactionId: txRef,           // we'll overwrite with the real tx id after verification
+      status:        'pending',
+      paymentFor:    paymentFor === 'deposit' ? 'deposit' : paymentFor === 'topup' ? 'other' : 'rent',
+      paymentMonth:  new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+    });
+
+    // Build the config object the React inline widget expects
+    const config = {
+      public_key:      process.env.FLW_PUBLIC_KEY,
+      tx_ref:          txRef,
+      amount,
+      currency:        'RWF',
+      payment_options: 'card,mobilemoneyrwanda,banktransfer',
+      customer: {
+        email:        user.email,
+        name:         `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        phone_number: user.phone || ''
+      },
+      customizations: {
+        title:       'Urugo Rental Platform',
+        description,
+        logo:        'https://urugo.netlify.app/logo.png'
+      },
+      meta: {
+        paymentId:  String(pendingPayment._id),
+        paymentFor,
+        leaseId:    String(lease._id),
+        landlordId: String(lease.landlordId?._id || lease.landlordId),
+        unitNumber: lease.unitNumber
+      }
+    };
+
+    return res.status(200).json({ success: true, config });
+  } catch (error) {
+    console.error('❌ FLW init error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc   Verify a Flutterwave transaction after the inline callback
+ * @route  POST /api/payments/flutterwave/verify
+ * @access Private (tenant)
+ */
+const verifyFlutterwavePayment = async (req, res) => {
+  try {
+    const { transaction_id, tx_ref } = req.body;
+
+    if (!transaction_id) {
+      return res.status(400).json({ success: false, message: 'transaction_id is required' });
+    }
+
+    // Call Flutterwave to confirm the transaction
+    const flwRes  = await flw.Transaction.verify({ id: transaction_id });
+    const flwData = flwRes?.data;
+
+    if (!flwData || flwRes.status !== 'success') {
+      return res.status(400).json({ success: false, message: 'Flutterwave verification failed' });
+    }
+
+    if (
+      flwData.status    !== 'successful' ||
+      flwData.currency  !== 'RWF'
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: `Transaction not successful. Status: ${flwData.status}`
+      });
+    }
+
+    // Find our pending payment (match by tx_ref stored in transactionId)
+    const refToFind = tx_ref || flwData.tx_ref;
+    let payment     = await Payment.findOne({ transactionId: refToFind })
+                                   .populate('landlordId tenantId propertyId');
+
+    if (payment && payment.status === 'completed') {
+      return res.status(200).json({ success: true, message: 'Already recorded', payment });
+    }
+
+    if (payment) {
+      // Verify the amount matches (guard against tampered amounts)
+      if (Number(flwData.amount) < payment.amount) {
+        payment.status = 'partial';
+        payment.paidAmount = Number(flwData.amount);
+      } else {
+        payment.status    = 'completed';
+        payment.paidAmount = payment.amount;
+      }
+      payment.transactionId = String(flwData.id);   // real Flutterwave tx id
+      payment.paidDate      = new Date();
+      await payment.save();
+    } else {
+      // Fallback: create the record (webhook may not have fired yet)
+      payment = await Payment.create({
+        tenantId:      flwData.meta?.userId || req.userId || req.user?._id,
+        landlordId:    flwData.meta?.landlordId,
+        propertyId:    flwData.meta?.propertyId,
+        amount:        Number(flwData.amount),
+        paidAmount:    Number(flwData.amount),
+        dueDate:       new Date(),
+        paidDate:      new Date(),
+        paymentMethod: 'flutterwave',
+        transactionId: String(flwData.id),
+        status:        'completed',
+        paymentFor:    flwData.meta?.paymentFor || 'rent',
+        paymentMonth:  new Date().toLocaleString('default', { month: 'long', year: 'numeric' })
+      });
+      await payment.populate('landlordId tenantId propertyId');
+    }
+
+    // Only for completed payments: receipt + email
+    if (payment.status === 'completed') {
+      // Create receipt document
+      await Document.create({
+        title:       `Flutterwave Receipt – ${payment.paymentMonth || new Date().toLocaleDateString()}`,
+        name:        `Flutterwave Receipt – ${payment.paymentMonth || new Date().toLocaleDateString()}`,
+        type:        'receipt',
+        url:         `#flw-receipt-${payment._id}`,
+        uploadedBy:  String(payment.tenantId?._id || payment.tenantId),
+        ownerId:     String(payment.tenantId?._id || payment.tenantId),
+        relatedTo:   String(flwData.meta?.leaseId || ''),
+        relatedModel:'Lease'
+      });
+
+      // Notify landlord
+      if (payment.landlordId?.email) {
+        await sendLandlordNotification(
+          payment.landlordId.email,
+          'New Rent Payment Received via Flutterwave',
+          `Payment of ${payment.amount} RWF received from ${payment.tenantId?.firstName || 'Tenant'} for unit ${flwData.meta?.unitNumber || ''}`
+        );
+      }
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: payment.status === 'completed' ? 'Payment verified and recorded' : 'Partial payment recorded',
+      payment: {
+        id:       payment._id,
+        amount:   payment.amount,
+        status:   payment.status,
+        paidDate: payment.paidDate
+      }
+    });
+  } catch (error) {
+    console.error('❌ FLW verify error:', error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * @desc   Flutterwave webhook – server-side real-time event handler
+ * @route  POST /api/payments/flutterwave/webhook
+ * @access Public (Flutterwave server — verified by hash)
+ */
+const flutterwaveWebhook = async (req, res) => {
+  try {
+    const secretHash  = process.env.FLW_WEBHOOK_SECRET;
+    const signature   = req.headers['verif-hash'];
+
+    // Reject requests that don't carry the correct secret
+    if (secretHash && signature !== secretHash) {
+      console.warn('⚠️  FLW webhook: invalid signature');
+      return res.status(401).send('Unauthorized');
+    }
+
+    const event = req.body;
+    console.log('🔔 FLW webhook received:', event?.event, event?.data?.tx_ref);
+
+    // We only care about successful charge completions
+    if (event?.event !== 'charge.completed' || event?.data?.status !== 'successful') {
+      return res.status(200).json({ received: true });
+    }
+
+    const data    = event.data;
+    const txRef   = data.tx_ref;
+    const txId    = String(data.id);
+
+    // Idempotency – skip if already processed with the real tx id
+    const existing = await Payment.findOne({ transactionId: txId });
+    if (existing) {
+      console.log('⚠️  FLW webhook: already processed', txId);
+      return res.status(200).json({ received: true });
+    }
+
+    // Find the pending record created during /init
+    const payment = await Payment.findOne({ transactionId: txRef })
+                                  .populate('landlordId tenantId propertyId');
+
+    if (payment) {
+      payment.status        = 'completed';
+      payment.paidAmount    = Number(data.amount);
+      payment.transactionId = txId;
+      payment.paidDate      = new Date();
+      await payment.save();
+
+      // Receipt
+      await Document.create({
+        title:       `Flutterwave Receipt – ${payment.paymentMonth}`,
+        name:        `Flutterwave Receipt – ${payment.paymentMonth}`,
+        type:        'receipt',
+        url:         `#flw-receipt-${payment._id}`,
+        uploadedBy:  String(payment.tenantId?._id || payment.tenantId),
+        ownerId:     String(payment.tenantId?._id || payment.tenantId),
+        relatedModel:'Lease'
+      });
+
+      // Email
+      if (payment.landlordId?.email) {
+        await sendLandlordNotification(
+          payment.landlordId.email,
+          'Rent Payment Confirmed via Flutterwave',
+          `Payment of ${payment.amount} RWF confirmed for ${payment.tenantId?.firstName || 'Tenant'}.`
+        );
+      }
+
+      console.log('✅ FLW webhook: payment recorded', payment._id);
+    } else {
+      console.warn('⚠️  FLW webhook: no matching pending payment for', txRef);
+    }
+
+    return res.status(200).json({ received: true });
+  } catch (error) {
+    console.error('❌ FLW webhook error:', error.message);
+    return res.status(500).send(`Webhook Error: ${error.message}`);
+  }
+};
+
 module.exports = {
   getPayments,
   createPayment,
@@ -504,5 +799,8 @@ module.exports = {
   verifyPaystackPayment,
   createStripeCheckoutSession,
   stripeWebhook,
-  verifyStripePayment
+  verifyStripePayment,
+  initFlutterwavePayment,
+  verifyFlutterwavePayment,
+  flutterwaveWebhook
 };

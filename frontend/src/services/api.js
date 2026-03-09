@@ -4,6 +4,7 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api'
 });
 
+// ── Request interceptor – attach token ────────────────────────────────────────
 api.interceptors.request.use((config) => {
   const raw = localStorage.getItem('userInfo');
   let token = localStorage.getItem('token') || '';
@@ -20,5 +21,25 @@ api.interceptors.request.use((config) => {
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
+
+// ── Response interceptor – auto-logout on expired/invalid token ───────────────
+// AuthContext registers its logout function here so this file stays dependency-free
+let _logoutHandler = null;
+
+export const registerLogoutHandler = (fn) => {
+  _logoutHandler = fn;
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const status = error?.response?.status;
+    if ((status === 401 || status === 403) && _logoutHandler) {
+      console.warn('🔒 Session expired – logging out automatically');
+      _logoutHandler();
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default api;

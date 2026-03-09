@@ -25,7 +25,7 @@ const LandingPage = () => {
   const brandColor = '#54ab91';
   const [properties, setProperties] = useState([]);
 
-  const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api').replace('/api', '');
+  const API_ORIGIN = "https://api.urugorentals.com";
 
   const toImageUrl = (url) => {
     if (!url) return '';

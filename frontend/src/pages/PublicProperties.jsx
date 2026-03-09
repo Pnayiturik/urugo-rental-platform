@@ -23,7 +23,7 @@ export default function PublicProperties() {
   const navigate = useNavigate();
   const brandColor = '#54ab91';
 
-  const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api').replace('/api', '');
+  const API_ORIGIN = "https://api.urugorentals.com";
   
   const resolveImageUrl = (url) => {
     if (!url) return 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1200&auto=format&fit=crop';

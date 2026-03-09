@@ -54,7 +54,7 @@ export default function PublicPropertyDetail() {
     })();
   }, [id]);
 
-  const API_ORIGIN = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api').replace('/api', '');
+  const API_ORIGIN = "https://api.urugorentals.com";
   const resolveImageUrl = (url) => (!url ? '' : (url.startsWith('http') ? url : `${API_ORIGIN}${url}`));
 
   const images = useMemo(() => {

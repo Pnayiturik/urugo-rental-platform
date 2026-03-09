@@ -31,7 +31,7 @@ const LandingPage = () => {
     if (!url) return '';
     if (url.startsWith('http')) return url;
     return `${API_ORIGIN}${url}`;
-  };
+  }; 
 
   useEffect(() => {
     const fetchPublic = async () => {

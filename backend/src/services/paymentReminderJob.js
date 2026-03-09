@@ -18,26 +18,19 @@ const checkAndSendReminders = async () => {
     const pendingPayments = await Payment.find({
       status: { $in: ['pending', 'overdue'] }
     })
-      .populate('tenantId')
-      .populate({
-        path: 'tenantId',
-        populate: {
-          path: 'userId',
-          select: 'firstName lastName email'
-        }
-      })
+      .populate('tenantId', 'firstName lastName email')
       .populate('propertyId', 'name')
       .populate('landlordId', 'firstName lastName email');
 
     for (const payment of pendingPayments) {
-      if (!payment.tenantId || !payment.tenantId.userId) continue;
+      if (!payment.tenantId) continue;
 
       const dueDate = new Date(payment.dueDate);
       dueDate.setHours(0, 0, 0, 0);
 
       const daysUntilDue = Math.ceil((dueDate - today) / (1000 * 60 * 60 * 24));
 
-      const tenant = payment.tenantId.userId;
+      const tenant = payment.tenantId;   // already a User document
       const landlord = payment.landlordId;
 
       if (daysUntilDue === 3) {

@@ -16,7 +16,7 @@ const rentalRequestRoutes = require('./routes/rentalRequestRoutes');
 const landlordRoutes = require('./routes/landlordRoutes'); // add
 
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+  origin: '*',
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
 }));

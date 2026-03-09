@@ -10,11 +10,6 @@ const must = (fn, name) => {
   return fn;
 };
 
-// ── Generic / legacy ─────────────────────────────────────────────────────────
-router.get('/',    protect, must(paymentController.getPayments, 'getPayments'));
-router.post('/',   protect, must(paymentController.createPayment, 'createPayment'));
-router.get('/:id', protect, must(paymentController.getPaymentById, 'getPaymentById'));
-
 // ── Landlord ──────────────────────────────────────────────────────────────────
 router.get('/landlord/all',   protect, must(paymentController.getPayments, 'getPayments'));
 router.get('/landlord/stats', protect, must(paymentController.getPaymentStats, 'getPaymentStats'));
@@ -37,5 +32,10 @@ router.post('/flutterwave/init',    protect, must(paymentController.initFlutterw
 router.post('/flutterwave/verify',  protect, must(paymentController.verifyFlutterwavePayment, 'verifyFlutterwavePayment'));
 // 3. Webhook – called by Flutterwave servers (no auth middleware)
 router.post('/flutterwave/webhook', must(paymentController.flutterwaveWebhook, 'flutterwaveWebhook'));
+
+// ── Generic / legacy (must stay LAST – wildcard /:id would shadow named routes) ──
+router.get('/',    protect, must(paymentController.getPayments, 'getPayments'));
+router.post('/',   protect, must(paymentController.createPayment, 'createPayment'));
+router.get('/:id', protect, must(paymentController.getPaymentById, 'getPaymentById'));
 
 module.exports = router;

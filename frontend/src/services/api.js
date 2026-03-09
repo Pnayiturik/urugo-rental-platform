@@ -34,7 +34,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const status = error?.response?.status;
-    if ((status === 401 || status === 403) && _logoutHandler) {
+    // Only auto-logout on 401 (unauthenticated). 403 = forbidden but still logged in.
+    if (status === 401 && _logoutHandler) {
       console.warn('🔒 Session expired – logging out automatically');
       _logoutHandler();
     }

@@ -146,7 +146,8 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const data = await login(credentials);
-      const token = extractToken(data);
+      // For first-time tenant logins the server returns firstLoginToken instead of token
+      const token = extractToken(data) || data?.firstLoginToken || '';
       if (token) {
         localStorage.setItem('token', token);
         scheduleExpiry(token);

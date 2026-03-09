@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
+import ChangePassword from './pages/auth/ChangePassword';
 
 import LandlordLayout from './layouts/LandlordLayout';
 import TenantLayout from './layouts/TenantLayout';
@@ -34,6 +35,7 @@ function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/change-password" element={<ChangePassword />} />
 
       <Route path="/landlord" element={<LandlordLayout />}>
         <Route index element={<Navigate to="home" replace />} />        

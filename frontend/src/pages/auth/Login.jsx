@@ -28,6 +28,12 @@ function Login() {
     try {
       const res = await handleLogin({ email, password });
 
+      // Tenant first-login: must change temp password before accessing dashboard
+      if (res?.mustChangePassword) {
+        navigate('/change-password', { replace: true });
+        return;
+      }
+
       const redirect = searchParams.get('redirect');
       const intent = searchParams.get('intent');
 

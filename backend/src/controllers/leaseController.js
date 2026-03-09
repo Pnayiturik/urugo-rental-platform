@@ -115,15 +115,27 @@ const createLease = async (req, res) => {
     unit.status = 'occupied';
     await property.save();
 
-    await Document.create({
-      title: `Lease Agreement: ${tenant.firstName} ${tenant.lastName}`,
-      type: 'Lease',
-      ownerId: landlordId,
-      uploadedBy: landlordId,
-      relatedId: lease._id,
-      relatedTo: lease._id,
-      relatedModel: 'Lease'
-    });
+    // Create lease document for both the landlord AND the tenant so each can see it
+    await Document.create([
+      {
+        title: `Lease Agreement: ${tenant.firstName} ${tenant.lastName}`,
+        type: 'Lease',
+        ownerId: landlordId,
+        uploadedBy: landlordId,
+        relatedId: lease._id,
+        relatedTo: lease._id,
+        relatedModel: 'Lease'
+      },
+      {
+        title: `Lease Agreement – ${property.name} (Unit ${unit.unitNumber})`,
+        type: 'Lease',
+        ownerId: tenant._id,
+        uploadedBy: landlordId,
+        relatedId: lease._id,
+        relatedTo: lease._id,
+        relatedModel: 'Lease'
+      }
+    ]);
 
     // Always send an email to the tenant, with or without a temp password
     try {

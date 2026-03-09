@@ -334,18 +334,28 @@ const stripeWebhook = async (req, res) => {
 
       // Only create receipt and notify for successful payments
       if (paymentStatus === 'completed') {
-        const document = await Document.create({
-          name: `Rent Receipt - ${payment.paymentMonth}`,
-          title: `Rent Receipt - ${payment.paymentMonth}`,
-          type: 'receipt',
-          url: `#receipt-${payment._id}`,
-          uploadedBy: session.metadata.userId,
-          ownerId: session.metadata.userId,
-          relatedTo: session.metadata.leaseId,
-          relatedModel: 'Lease'
-        });
-
-        console.log('✅ Receipt document created:', document._id);
+        await Document.create([
+          {
+            name: `Rent Receipt - ${payment.paymentMonth}`,
+            title: `Rent Receipt - ${payment.paymentMonth}`,
+            type: 'receipt',
+            url: `#receipt-${payment._id}`,
+            uploadedBy: session.metadata.userId,
+            ownerId: session.metadata.userId,   // tenant sees it
+            relatedTo: session.metadata.leaseId,
+            relatedModel: 'Lease'
+          },
+          {
+            name: `Rent Receipt - ${payment.paymentMonth}`,
+            title: `Rent Receipt - ${payment.paymentMonth}`,
+            type: 'receipt',
+            url: `#receipt-${payment._id}`,
+            uploadedBy: session.metadata.userId,
+            ownerId: session.metadata.landlordId, // landlord sees it too
+            relatedTo: session.metadata.leaseId,
+            relatedModel: 'Lease'
+          }
+        ]);
 
         const landlord = await User.findById(session.metadata.landlordId);
         if (landlord?.email) {
@@ -456,17 +466,29 @@ const verifyStripePayment = async (req, res) => {
 
     // Only create receipt and notify for successful payments
     if (paymentStatus === 'completed') {
-      // Create receipt document
-      const receiptDoc = await Document.create({
-        name: `Rent Receipt - ${new Date().toLocaleDateString()}`,
-        type: 'receipt',
-        ownerId: session.metadata.userId,
-        relatedTo: session.metadata.leaseId,
-        fileUrl: session.receipt_url || `receipt-${payment._id}`,
-        uploadDate: new Date()
-      });
+      // Create receipt document for both tenant and landlord
+      await Document.create([
+        {
+          name: `Rent Receipt - ${new Date().toLocaleDateString()}`,
+          title: `Rent Receipt - ${new Date().toLocaleDateString()}`,
+          type: 'receipt',
+          ownerId: session.metadata.userId,        // tenant
+          relatedTo: session.metadata.leaseId,
+          fileUrl: session.receipt_url || `#receipt-${payment._id}`,
+          uploadedBy: session.metadata.userId
+        },
+        {
+          name: `Rent Receipt - ${new Date().toLocaleDateString()}`,
+          title: `Rent Receipt - ${new Date().toLocaleDateString()}`,
+          type: 'receipt',
+          ownerId: session.metadata.landlordId,    // landlord
+          relatedTo: session.metadata.leaseId,
+          fileUrl: session.receipt_url || `#receipt-${payment._id}`,
+          uploadedBy: session.metadata.userId
+        }
+      ]);
 
-      console.log('✅ Receipt document created:', receiptDoc._id);
+      console.log('✅ Receipt documents created for tenant and landlord');
 
       // Send notification to landlord
       const landlord = await User.findById(session.metadata.landlordId);

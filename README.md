@@ -14,7 +14,7 @@ Tackle the **lack of transparency and accountability** in the rental market by b
 
 ## Overview
 
-Urugo is a comprehensive rental management solution designed to address the unique challenges of the Rwandan housing market. By digitizing the relationship between landlords and tenants, the platform replaces manual and spreadsheet-based processes with a secure, automated system built on trust and verified data.
+Urugo is a comprehensive rental management solution designed to address the unique challenges of the Rwandan housing market. We digitize the landlord-tenant relationship, replacing manual, spreadsheet-based processes with a secure, automated system built on trust and verified data.
 
 - **Problem Solved:** Replaces manual/spreadsheet rental management with an automated, secure digital platform
 - **GCGO Alignment:** Primary: Infrastructure | Secondary: Governance & Accountability
@@ -112,6 +112,32 @@ Urugo is a comprehensive rental management solution designed to address the uniq
 | Frontend | Netlify       | [urugorentals.com](https://urugorentals.com) |
 | Backend  | Render.com    | Frankfurt region (proximity to Rwanda)       |
 | Database | MongoDB Atlas | Cloud tier with automated backups            |
+
+---
+
+## Screenshots
+
+### 1. Landing Page
+<img width="1917" height="870" alt="landing page" src="https://github.com/user-attachments/assets/f6b2d26b-f09e-4ab2-a17d-43b09e591455" />
+
+### 2. Login & Authentication
+<img width="1918" height="867" alt="sign in" src="https://github.com/user-attachments/assets/bc0dde31-85c9-4975-9606-dbae7d6cb884" />
+
+### 3. Landlord Dashboard (Analytics & Revenue)
+<img width="1918" height="870" alt="landlord dashboard" src="https://github.com/user-attachments/assets/2283219c-49bf-49d4-ba90-ae244d663492" />
+
+### 4. Tenant Management & Renters List
+<img width="1902" height="867" alt="tenant home" src="https://github.com/user-attachments/assets/9c678ed8-a855-47ef-a49a-964c0a4f092c" />
+
+### 5. Payment Portal & Wallet
+<img width="1899" height="864" alt="Screenshot 2026-03-10 085458" src="https://github.com/user-attachments/assets/88213c4a-6ceb-48b2-b0a2-2174e5d7abaa" />
+<img width="1895" height="879" alt="Screenshot 2026-03-10 085614" src="https://github.com/user-attachments/assets/3f238922-d208-4ce5-adaf-fb3c5c292be7" />
+
+
+### 6. Lease & Agreement View
+<img width="1919" height="867" alt="Screenshot 2026-03-10 085757" src="https://github.com/user-attachments/assets/cf645cea-6b88-4789-9203-a52355bbb669" />
+<img width="1895" height="856" alt="Screenshot 2026-03-10 090110" src="https://github.com/user-attachments/assets/1125edae-bfc7-4b7f-ac2a-bc657051a624" />
+<img width="612" height="716" alt="Screenshot 2026-03-10 085959" src="https://github.com/user-attachments/assets/0070ed1e-7bdd-4a0e-919f-e5f6a460881e" />
 
 ---
 

@@ -70,33 +70,30 @@ JavaScript
   paymentMethod: 'flutterwave_momo' | 'card',
   transactionId: String
 }
-Testing Results & Analysis
-Testing Strategies
+## Testing Results & Analysis
+
+### Testing Strategies
 The system underwent rigorous testing to ensure reliability across the Rwandan rental context:
+- **Functional Testing**: Verified that the "Assign" trigger correctly transitions a `RentalRequest` into an active `Lease` and `Renter` record.
+- **Data Value Testing**: Confirmed system stability when processing 16-digit National IDs and large currency values (RWF) in the `Wallet.jsx` component.
+- **Cross-Platform Testing**: Functionality verified on Chrome, Safari, and mobile viewports to ensure the #54ab91 seafoam theme remains accessible and responsive.
 
-Functional Testing: Verified that the "Assign" trigger correctly transitions a RentalRequest into an active Lease and Renter record.
+### Project Analysis
+- **Objectives Met**: Successfully automated the tenant onboarding flow and digitized legal contracts, achieving the primary project goal of increasing market transparency.
+- **Performance**: Database queries for landlord analytics were optimized to load within < 2 seconds, meeting professional specification requirements.
 
-Data Value Testing: Confirmed system stability when processing 16-digit National IDs and large currency values (RWF) in the Wallet.jsx component.
+---
 
-Cross-Platform Testing: Functionality verified on Chrome, Safari, and mobile viewports to ensure the #54ab91 seafoam theme remains accessible and responsive.
+## Deployment Plan
+- **Frontend**: Netlify (Deployed at **[urugorentals.com](https://urugorentals.com)**)
+- **Backend**: Render.com (Frankfurt Region for proximity to Rwanda)
+- **Database**: MongoDB Atlas (Cloud Tier with automated backups)
+- **Status**: **Fully Deployed & Operational**
 
-Project Analysis
-Objectives Met: Successfully automated the tenant onboarding flow and digitized legal contracts, achieving the primary project goal of increasing market transparency.
+---
 
-Performance: Database queries for landlord analytics were optimized to load within < 2 seconds, meeting professional specification requirements.
+## Contact
+**Patrick Nayituriki** Bachelor of Science in Software Engineering  
+**African Leadership University** Email: [Pnayiturik@alustudent.com](mailto:Pnayiturik@alustudent.com)  
 
-Deployment Plan
-Frontend: Netlify (Deployed at urugorentals.com)
-
-Backend: Render.com (Frankfurt Region for proximity to Rwanda)
-
-Database: MongoDB Atlas (Cloud Tier with automated backups)
-
-Status: Fully Deployed & Operational
-
-Contact
-Patrick Nayituriki Bachelor of Science in Software Engineering
-
-African Leadership University Email: Pnayiturik@alustudent.com
-
-Last Updated: March 2026
+**Last Updated:** March 2026

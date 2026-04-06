@@ -1,153 +1,154 @@
-# Urugo Rental Management Platform
+# Urugo Rental Management Platform (URMP)
 
-**A centralized digital rental management platform built for the Rwandan housing market.**
-
-**Live Platform:** [urugorentals.com](https://urugorentals.com/) | **Video Demo:** [Watch Here](https://drive.google.com/file/d/1jvnPbN3lsTR2S10Mf6YFdyujYeeHnC2E/view?usp=drive_link) | **GitHub:** [Repository](https://github.com/Pnayiturik/urugo-rental-platform)
-
----
-
-## Mission
-
-Tackle the **lack of transparency and accountability** in the rental market by building a **centralized digital management platform** using full-stack web development, database management, and modern system architecture.
+A localized, mobile-first digital rental management platform built for 
+Rwanda's housing market. Urugo integrates National ID tenant verification, 
+automated digital lease generation, and Mobile Money payment tracking into 
+a single self-service workflow for landlords and tenants in Kigali.
 
 ---
 
-## Overview
+## Project Overview
 
-Urugo is a comprehensive rental management solution designed to address the unique challenges of the Rwandan housing market. We digitize the landlord-tenant relationship, replacing manual, spreadsheet-based processes with a secure, automated system built on trust and verified data.
-
-- **Problem Solved:** Replaces manual/spreadsheet rental management with an automated, secure digital platform
-- **GCGO Alignment:** Primary: Infrastructure | Secondary: Governance & Accountability
-- **Status:** Fully Deployed & Operational
-
----
-
-## Features
-
-### For Landlords
-
-- **Unified Property Management:** Add and manage multiple properties with individual units and real-time occupancy tracking.
-- **Verified Tenant Onboarding:** Assign tenants from requests, automatically generating accounts with 16-digit National ID-linked profiles.
-- **Digital Lease Generation:** Instant creation of professional Residential Rental Agreements, stored permanently in the digital archive.
-- **Trust Score System:** Review tenant reliability based on Urugo payment history before approving requests.
-- **Misconduct Tracking:** Record and monitor tenant violations to ensure property safety and community standards.
-
-### For Tenants
-
-- **Flutterwave Payment Portal:** Securely pay rent using Mobile Money (MoMo) or card through a dedicated tenant wallet.
-- **Automated Receipts:** Access a full transaction history with downloadable digital receipts for every payment.
-- **Lease Access:** View and download the active Digital Rental Agreement directly from the dashboard.
-- **Secure Credentials:** First-time access via system-generated temporary passwords with a mandatory reset on first login.
+Urugo addresses the transparency and accountability gap in Rwanda's 
+informal rental sector by providing:
+- 16-digit Rwandan National ID tenant verification
+- Automated PDF lease agreement generation upon landlord approval
+- Real-time rent payment tracking via MTN MoMo and Airtel Money 
+  (Flutterwave integration)
+- Role-based dashboards for landlords and tenants
+- A chronological, non-editable payment ledger for both parties
 
 ---
 
 ## Technology Stack
 
-### Frontend
-
-- **React 19.2.0** — UI Framework
-- **Vite** — Build Tool
-- **Tailwind CSS** — Styling with custom `#54ab91` brand theme
-- **Recharts** — Interactive revenue analytics
-
-### Backend
-
-- **Node.js & Express 5.2.1** — API layer
-- **MongoDB & Mongoose 9.1.5** — Database
-- **JWT & Bcryptjs** — Authentication & security
-- **Nodemailer** — Automated tenant invitations
+| Layer | Technology |
+|-------|-----------|
+| Frontend | React 19 |
+| Backend | Node.js, Express |
+| Database | MongoDB Atlas |
+| Payment | Flutterwave (MTN MoMo, Airtel Money) |
+| Authentication | JWT, Bcrypt |
+| PDF Generation | pdfkit |
+| Email Notifications | Nodemailer |
+| Hosting | Vercel (frontend), Render (backend) |
 
 ---
 
-## Database Schema
+## Installation and Local Setup
 
-### Leases & Agreements
+### Prerequisites
+- Node.js v18 or higher
+- MongoDB Atlas account
+- Flutterwave account (for payment API keys)
+- Git
 
-```javascript
-{
-  landlordId: ObjectId,
-  tenantId:   ObjectId,
-  propertyId: ObjectId,
-  unitNumber: String,
-  rentAmount: Number,   // Source for Wallet balance
-  nationalId: String,   // Rwandan NID Verification
-  status: 'active' | 'terminated'
-}
-```
+### Steps
 
-### Payments (Flutterwave Integrated)
+1. Clone the repository
+git clone https://github.com/Pnayiturik/urugo-rental-platform.git
+cd urugo-rental-platform
 
-```javascript
-{
-  tenantId:      ObjectId,
-  amount:        Number,
-  status:        'pending' | 'completed' | 'overdue',
-  paymentMethod: 'flutterwave_momo' | 'card',
-  transactionId: String
-}
-```
+2. Install backend dependencies
+cd backend
+npm install
+
+3. Install frontend dependencies
+cd ../frontend
+npm install
+
+4. Configure environment variables
+Copy the .env.example file in the backend folder and rename it to .env
+Fill in all required values as described in the section below
+
+5. Run the backend server
+cd backend
+npm run dev
+
+6. Run the frontend
+cd ../frontend
+npm start
+
+7. Open your browser and navigate to http://localhost:3000
 
 ---
 
-## Testing
+## Environment Variables
 
-### Strategies
+Create a .env file in the backend directory using the following template:
 
-- **Functional Testing:** Verified that the "Assign" trigger correctly transitions a `RentalRequest` into an active `Lease` and `Renter` record.
-- **Data Value Testing:** Confirmed system stability when processing 16-digit National IDs and large RWF currency values in `Wallet.jsx`.
-- **Cross-Platform Testing:** Verified on Chrome, Safari, and mobile viewports; `#54ab91` seafoam theme confirmed accessible and responsive.
+PORT=5000
+MONGO_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_jwt_secret_key
+FLUTTERWAVE_PUBLIC_KEY=your_flutterwave_public_key
+FLUTTERWAVE_SECRET_KEY=your_flutterwave_secret_key
+FLUTTERWAVE_WEBHOOK_SECRET=your_flutterwave_webhook_secret
+EMAIL_USER=your_nodemailer_email_address
+EMAIL_PASS=your_nodemailer_email_password
 
-### Results
+---
 
-- Automated tenant onboarding flow fully operational.
-- Digital legal contracts successfully generated and archived.
-- Database queries for landlord analytics load in under 2 seconds.
+## API Endpoints
+
+### Authentication
+POST /api/auth/register - Register a new user (landlord or tenant)
+POST /api/auth/login - Login and receive JWT token
+
+### Properties
+GET /api/properties - Get all listed properties
+POST /api/properties - Create a new property listing (landlord only)
+GET /api/properties/:id - Get a specific property
+
+### Rental Requests
+POST /api/requests - Submit a rental request (tenant only)
+GET /api/requests - Get all requests (landlord only)
+PUT /api/requests/:id/approve - Approve a rental request (landlord only)
+
+### Payments
+POST /api/payments/initiate - Initiate a MoMo payment (tenant only)
+POST /api/payments/webhook - Flutterwave webhook listener
+GET /api/payments - Get payment history
+
+### Leases
+GET /api/leases - Get all leases for the logged-in user
+GET /api/leases/:id/download - Download lease PDF
+
+---
+
+## Running Tests
+
+From the backend directory:
+npm test
+
+Tests cover:
+- National ID format validation (unit tests)
+- Frontend input validation (validation tests)
+- Flutterwave webhook integration (integration tests)
+- Full end-to-end rental workflow (system tests)
 
 ---
 
 ## Deployment
 
-| Layer    | Provider      | Details                                      |
-|----------|---------------|----------------------------------------------|
-| Frontend | Netlify       | [urugorentals.com](https://urugorentals.com) |
-| Backend  | Render.com    | Frankfurt region (proximity to Rwanda)       |
-| Database | MongoDB Atlas | Cloud tier with automated backups            |
+Frontend is deployed on Vercel:
+- Connect your GitHub repository to Vercel
+- Set the root directory to /frontend
+- Add environment variables in Vercel dashboard
 
----
+Backend is deployed on Render:
+- Connect your GitHub repository to Render
+- Set the root directory to /backend
+- Add all .env variables in the Render environment settings
+- Set start command to: npm start
 
-## Screenshots
-
-### 1. Landing Page
-<img width="1917" height="870" alt="landing page" src="https://github.com/user-attachments/assets/f6b2d26b-f09e-4ab2-a17d-43b09e591455" />
-
-### 2. Login & Authentication
-<img width="1918" height="867" alt="sign in" src="https://github.com/user-attachments/assets/bc0dde31-85c9-4975-9606-dbae7d6cb884" />
-
-### 3. Landlord Dashboard (Analytics & Revenue)
-<img width="1918" height="870" alt="landlord dashboard" src="https://github.com/user-attachments/assets/2283219c-49bf-49d4-ba90-ae244d663492" />
-
-### 4. Tenant Management & Renters List
-<img width="1902" height="867" alt="tenant home" src="https://github.com/user-attachments/assets/9c678ed8-a855-47ef-a49a-964c0a4f092c" />
-
-### 5. Payment Portal & Wallet
-<img width="1899" height="864" alt="Screenshot 2026-03-10 085458" src="https://github.com/user-attachments/assets/88213c4a-6ceb-48b2-b0a2-2174e5d7abaa" />
-<img width="1895" height="879" alt="Screenshot 2026-03-10 085614" src="https://github.com/user-attachments/assets/3f238922-d208-4ce5-adaf-fb3c5c292be7" />
-
-
-### 6. Lease & Agreement View
-<img width="1919" height="867" alt="Screenshot 2026-03-10 085757" src="https://github.com/user-attachments/assets/cf645cea-6b88-4789-9203-a52355bbb669" />
-<img width="1895" height="856" alt="Screenshot 2026-03-10 090110" src="https://github.com/user-attachments/assets/1125edae-bfc7-4b7f-ac2a-bc657051a624" />
-<img width="612" height="716" alt="Screenshot 2026-03-10 085959" src="https://github.com/user-attachments/assets/0070ed1e-7bdd-4a0e-919f-e5f6a460881e" />
+Live platform: https://urugorentals.com
 
 ---
 
 ## Author
 
-**Patrick Nayituriki**  
-Bachelor of Science in Software Engineering  
-African Leadership University  
-[Pnayiturik@alustudent.com](mailto:Pnayiturik@alustudent.com)
-
----
-
-*Last updated: March 2026*
+Patrick Nayituriki
+BSc. Software Engineering
+African Leadership University
+Supervisor: Pelin Mutanguha
+2026
